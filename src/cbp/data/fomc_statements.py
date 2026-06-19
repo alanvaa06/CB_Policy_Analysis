@@ -2,7 +2,24 @@
 """FOMC statement HTML parser — handles modern (2006+) and historical (1999-2005) page layouts."""
 from __future__ import annotations
 
+import datetime as dt
+
 from bs4 import BeautifulSoup
+
+
+def statement_urls(d: dt.date) -> list[str]:
+    """Candidate URLs for the post-meeting statement on FOMC date `d`, in try order.
+
+    Modern (2006+): /newsevents/pressreleases/monetary{YYYYMMDD}a.htm
+    Historical (1999-2005): /boarddocs/press/{monetary|general}/{YYYY}/{YYYYMMDD}/default.htm
+    """
+    ymd = d.strftime("%Y%m%d")
+    if d.year >= 2006:
+        return [f"https://www.federalreserve.gov/newsevents/pressreleases/monetary{ymd}a.htm"]
+    return [
+        f"https://www.federalreserve.gov/boarddocs/press/monetary/{d.year}/{ymd}/default.htm",
+        f"https://www.federalreserve.gov/boarddocs/press/general/{d.year}/{ymd}/default.htm",
+    ]
 
 
 def parse_statement_html(html: str) -> str:

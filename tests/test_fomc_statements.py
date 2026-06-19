@@ -34,3 +34,20 @@ def test_parse_historical_extracts_paragraphs():
 
 def test_parse_empty_returns_empty_string():
     assert parse_statement_html("<html><body></body></html>") == ""
+
+
+import datetime as dt
+from cbp.data.fomc_statements import statement_urls
+
+def test_statement_urls_modern_era():
+    urls = statement_urls(dt.date(2008, 1, 30))
+    assert urls == [
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20080130a.htm"
+    ]
+
+def test_statement_urls_historical_era_has_two_candidates():
+    urls = statement_urls(dt.date(2001, 1, 3))
+    assert urls == [
+        "https://www.federalreserve.gov/boarddocs/press/monetary/2001/20010103/default.htm",
+        "https://www.federalreserve.gov/boarddocs/press/general/2001/20010103/default.htm",
+    ]
