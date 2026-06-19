@@ -3,6 +3,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+import pytest
 from cbp.config import Config
 from cbp.align.aligner import forward_change, build_aligned_panel
 
@@ -167,3 +168,38 @@ def test_panel_without_extra_features_unchanged():
     panel = build_aligned_panel(m, stance, cfg)
     assert "surprise" not in panel.columns
     assert abs(panel["DGS2_h1"].iloc[0] - 0.01) < 1e-9
+
+
+def test_panel_raises_on_missing_target_series():
+    # Gap 1: a configured target series entirely absent from the market frame is a
+    # GLOBAL data/config error (the market frame is shared across all releases),
+    # not a per-release window gap. The old per-release `break` dropped EVERY
+    # release -> silently emptied the whole panel, even for the series that IS
+    # present. It must fail fast naming the missing series, never return empty.
+    m = _market()  # has DGS2 and EFFR, but not DGS10
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    cfg = Config(horizons=(1,), target_series=("DGS2", "DGS10"))  # DGS10 absent
+    with pytest.raises(ValueError, match="DGS10"):
+        build_aligned_panel(m, stance, cfg)
+
+
+def test_panel_raises_on_duplicate_extra_feature_date():
+    # Gap 2: two extra-feature rows on the SAME normalized date make
+    # feat_lookup.loc[key] return a DataFrame, so float(frow[c]) blows up with an
+    # opaque "cannot convert the series to <class 'float'>" TypeError. A guard
+    # before set_index must raise a clear ValueError naming the duplicate date.
+    m = _market()
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    surprise = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2020-01-29", "2020-01-29"]),  # duplicate date
+            "surprise": [0.07, 0.09],
+        }
+    )
+    cfg = Config(horizons=(1,), target_series=("DGS2",))
+    with pytest.raises(ValueError, match="2020-01-29"):
+        build_aligned_panel(m, stance, cfg, extra_features=surprise)

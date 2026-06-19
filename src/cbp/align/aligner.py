@@ -38,8 +38,25 @@ def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Conf
     if extra_features is not None:
         ef = extra_features.copy()
         ef["date"] = pd.to_datetime(ef["date"]).dt.normalize()
+        dup_mask = ef["date"].duplicated(keep=False)
+        if dup_mask.any():
+            dups = sorted({d.date() for d in ef.loc[dup_mask, "date"]})
+            raise ValueError(
+                "extra_features has duplicate date(s), so per-release lookup is "
+                f"ambiguous: {', '.join(str(d) for d in dups)}"
+            )
         feat_cols = [c for c in ef.columns if c != "date"]
         feat_lookup = ef.set_index("date")
+
+    # A target series absent from the market frame is a GLOBAL precondition
+    # (the same frame is shared by every release), not a per-release window gap.
+    # Fail fast naming the missing series rather than dropping every release and
+    # silently emptying the whole panel.
+    missing = [sid for sid in config.target_series if sid not in market.columns]
+    if missing:
+        raise ValueError(
+            f"target series absent from market frame: {', '.join(missing)}"
+        )
 
     rows = []
     for _, r in stance.sort_values("release_ts").iterrows():
@@ -56,10 +73,6 @@ def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Conf
                 for c in feat_cols:
                     row[c] = float(frow[c])
         for sid in config.target_series:
-            if sid not in market.columns:
-                ok = False
-                reasons.append(f"series {sid} absent from market frame")
-                break
             for h in config.horizons:
                 val = forward_change(market[sid], r["release_ts"], h)
                 if np.isnan(val):
