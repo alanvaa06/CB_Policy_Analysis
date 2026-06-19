@@ -3,10 +3,11 @@
 name = "cbp"
 version = "0.0.1"
 requires-python = ">=3.11"
-dependencies = ["pandas>=2.0", "numpy>=1.26", "scipy>=1.11", "statsmodels>=0.14", "fredapi>=0.5", "pyarrow>=14"]
+dependencies = ["pandas>=2.0", "numpy>=1.26", "scipy>=1.11", "statsmodels>=0.14", "fredapi>=0.5", "pyarrow>=14", "beautifulsoup4>=4.12", "requests>=2.31", "openpyxl>=3.1"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "hypothesis>=6.0"]
+infer = ["torch>=2.2", "transformers>=4.40", "huggingface_hub>=0.23"]
 
 [project.scripts]
 cbp-harness = "cbp.cli:main"
