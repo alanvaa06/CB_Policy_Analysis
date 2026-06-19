@@ -3,7 +3,7 @@
 name = "cbp"
 version = "0.0.1"
 requires-python = ">=3.11"
-dependencies = ["pandas>=2.0", "numpy>=1.26", "statsmodels>=0.14", "fredapi>=0.5", "pyarrow>=14"]
+dependencies = ["pandas>=2.0", "numpy>=1.26", "scipy>=1.11", "statsmodels>=0.14", "fredapi>=0.5", "pyarrow>=14"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "hypothesis>=6.0"]
