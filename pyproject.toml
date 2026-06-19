@@ -8,6 +8,9 @@ dependencies = ["pandas>=2.0", "numpy>=1.26", "scipy>=1.11", "statsmodels>=0.14"
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "hypothesis>=6.0"]
 
+[project.scripts]
+cbp-harness = "cbp.cli:main"
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
