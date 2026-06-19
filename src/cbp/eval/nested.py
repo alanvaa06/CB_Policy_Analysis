@@ -18,6 +18,24 @@ def _stance_partial_t(panel: pd.DataFrame, target_col: str) -> float:
     return float(res.tvalues[2])
 
 
+def residual_stance_regression(panel: pd.DataFrame, target_col: str, n0: int) -> dict:
+    """Cross-check (PRD §7): regress the surprise-only OOS residual on stance.
+
+    residual = y_true - (surprise-only OOS fit). A hawkish-text -> higher-residual
+    -yield read independent of the decision. Returns slope/t/r2/n; degrades to NaN
+    if fewer than 2 points or stance is constant.
+    """
+    a = run_walkforward(panel, target_col, SimpleOLS(), ZeroChange(), n0, feature_cols=["surprise"])
+    df = panel.sort_values("release_ts").reset_index(drop=True)
+    merged = a.merge(df[["release_ts", "stance"]], on="release_ts", how="left")
+    resid = (merged["y_true"] - merged["y_pred"]).to_numpy(dtype=float)
+    stance = merged["stance"].to_numpy(dtype=float)
+    if len(resid) < 2 or len(set(stance)) < 2:
+        return {"slope": float("nan"), "tstat": float("nan"), "r2": float("nan"), "n": int(len(resid))}
+    res = sm.OLS(resid, sm.add_constant(stance)).fit()
+    return {"slope": float(res.params[1]), "tstat": float(res.tvalues[1]), "r2": float(res.rsquared), "n": int(len(resid))}
+
+
 def nested_oos(panel: pd.DataFrame, target_col: str, n0: int) -> dict:
     """Nested OOS comparison: surprise-only (A) vs surprise+stance (B).
 

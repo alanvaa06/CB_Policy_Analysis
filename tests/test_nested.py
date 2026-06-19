@@ -26,3 +26,18 @@ def test_null_stance_adds_nothing_delta_r2_near_zero():
     out = nested_oos(_nested_panel(150, add_stance_signal=False), "DGS2_h1", n0=20)
     assert out["delta_r2"] < 0.02                            # no improvement (small/<=0)
     assert abs(out["stance_partial_t"]) < 2.5                # stance coef not significant
+
+from cbp.eval.nested import residual_stance_regression
+
+def test_residual_regression_picks_up_stance_after_surprise():
+    # target = surprise + 2*stance: after a surprise-only OOS fit, the residual is
+    # ~2*stance, so regressing residual on stance recovers a clearly positive slope.
+    out = residual_stance_regression(_nested_panel(150, add_stance_signal=True), "DGS2_h1", n0=20)
+    assert set(out) == {"slope", "tstat", "r2", "n"}
+    assert out["n"] == 130
+    assert out["slope"] > 0.5
+    assert out["tstat"] > 3.0
+
+def test_residual_regression_null_when_no_stance_signal():
+    out = residual_stance_regression(_nested_panel(150, add_stance_signal=False), "DGS2_h1", n0=20)
+    assert abs(out["tstat"]) < 2.5
