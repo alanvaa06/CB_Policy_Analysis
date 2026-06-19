@@ -22,8 +22,8 @@ htmlcov/
 *.env
 !.env.example
 
-# Generated data artifacts
-data/
+# Generated data artifacts (repo-root data dir only; not src/cbp/data package)
+/data/
 *.parquet
 *.sqlite
 *.db
