@@ -23,23 +23,56 @@ def forward_change(series: pd.Series, ts: pd.Timestamp, h: int) -> float:
     future = after.iloc[h - 1]
     return float(future - base)
 
-def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Config) -> pd.DataFrame:
+def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Config, extra_features: pd.DataFrame | None = None) -> pd.DataFrame:
     # release_ts is tz-aware UTC; real FRED data arrives tz-naive. Normalize a
     # tz-naive market index to UTC so the index/ts comparisons in forward_change
     # are valid (a naive calendar date is treated as that date at 00:00 UTC).
     if isinstance(market.index, pd.DatetimeIndex) and market.index.tz is None:
         market = market.copy()
         market.index = market.index.tz_localize("UTC")
+
+    # Optional control features (e.g. BS surprise) joined on the release CALENDAR
+    # date. Indexed by normalized date for O(1) lookup; one row per meeting.
+    feat_lookup = None
+    feat_cols: list[str] = []
+    if extra_features is not None:
+        ef = extra_features.copy()
+        ef["date"] = pd.to_datetime(ef["date"]).dt.normalize()
+        dup_mask = ef["date"].duplicated(keep=False)
+        if dup_mask.any():
+            dups = sorted({d.date() for d in ef.loc[dup_mask, "date"]})
+            raise ValueError(
+                "extra_features has duplicate date(s), so per-release lookup is "
+                f"ambiguous: {', '.join(str(d) for d in dups)}"
+            )
+        feat_cols = [c for c in ef.columns if c != "date"]
+        feat_lookup = ef.set_index("date")
+
+    # A target series absent from the market frame is a GLOBAL precondition
+    # (the same frame is shared by every release), not a per-release window gap.
+    # Fail fast naming the missing series rather than dropping every release and
+    # silently emptying the whole panel.
+    missing = [sid for sid in config.target_series if sid not in market.columns]
+    if missing:
+        raise ValueError(
+            f"target series absent from market frame: {', '.join(missing)}"
+        )
+
     rows = []
     for _, r in stance.sort_values("release_ts").iterrows():
         row = {"release_ts": r["release_ts"], "stance": r["stance"]}
         ok = True
         reasons: list[str] = []
-        for sid in config.target_series:
-            if sid not in market.columns:
+        if feat_lookup is not None:
+            key = pd.to_datetime(r["release_date"]).normalize()
+            if key not in feat_lookup.index:
                 ok = False
-                reasons.append(f"series {sid} absent from market frame")
-                break
+                reasons.append(f"missing extra feature(s) for release date {key.date()}")
+            else:
+                frow = feat_lookup.loc[key]
+                for c in feat_cols:
+                    row[c] = float(frow[c])
+        for sid in config.target_series:
             for h in config.horizons:
                 val = forward_change(market[sid], r["release_ts"], h)
                 if np.isnan(val):
