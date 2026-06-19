@@ -51,3 +51,20 @@ def score_statements(statements: pd.DataFrame, classifier: StanceClassifier) -> 
         mapped = [LABEL_MAP[p["label"]] for p in preds]
         rows.append({"date": r["date"], "stance": float(np.mean(mapped))})
     return pd.DataFrame(rows, columns=["date", "stance"])
+
+
+def load_fomc_roberta(model_id: str = "gtfintechlab/FOMC-RoBERTa", max_length: int = 256) -> StanceClassifier:
+    """Lazily build the real FOMC-RoBERTa text-classification pipeline.
+
+    `transformers` is imported inside the function so the test suite (which injects
+    a fake classifier) never needs torch/transformers. The model (~1.4GB) is
+    downloaded once and cached by huggingface_hub. Per-sentence inputs are
+    truncated to `max_length` tokens. License: CC BY-NC 4.0 (research use only).
+    """
+    from transformers import pipeline
+    pipe = pipeline("text-classification", model=model_id, truncation=True, max_length=max_length)
+
+    def classify(texts: list[str]) -> list[dict]:
+        return pipe(texts)
+
+    return classify

@@ -65,3 +65,25 @@ def test_dovish_statement_scores_negative():
     })
     out = score_statements(stmts, _fake_classifier)
     assert out["stance"].iloc[0] == pytest.approx(-1.0)
+
+
+import sys, types
+from cbp.models.stance_scorer import load_fomc_roberta
+
+def test_load_fomc_roberta_wires_pipeline_lazily(monkeypatch):
+    captured = {}
+    fake_transformers = types.ModuleType("transformers")
+    def fake_pipeline(task, model, truncation, max_length):
+        captured.update(task=task, model=model, truncation=truncation, max_length=max_length)
+        return lambda texts: [{"label": "LABEL_2", "score": 1.0} for _ in texts]
+    fake_transformers.pipeline = fake_pipeline
+    monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
+
+    classify = load_fomc_roberta()
+    out = classify(["sentence one", "sentence two"])
+
+    assert captured["task"] == "text-classification"
+    assert captured["model"] == "gtfintechlab/FOMC-RoBERTa"
+    assert captured["truncation"] is True
+    assert captured["max_length"] == 256
+    assert len(out) == 2 and out[0]["label"] == "LABEL_2"
