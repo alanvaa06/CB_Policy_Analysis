@@ -4,6 +4,5 @@
 
 Phase 0 — eval harness: DONE (T1-T13). Built + validated + live verdict (NO-GO on throwaway, harness trustworthy). See results.md/memory.md. Branch: phase-0-eval-harness (30 tests green).
 
-Phase 0 merged to main (branch deleted). Open:
-- [pending] Diagnostic (cheap, informative): re-run harness on mm-only (214 dates) and pc-only (63) single-doc-type stance series, compare to combined — does a clean doc type behave differently?
-- [pending] Phase 1 scoping — end-to-end thin slice with a CLEAN single-doc-type market-timed signal (FOMC-RoBERTa on statements or pressers), dropped into the proven harness. New PRD (002).
+Phase 0 merged to main + per-doc-type diagnostic DONE (see results.md). Open:
+- [pending] Phase 1 scoping — new PRD 002, end-to-end thin slice. Sharpened by diagnostic: target DGS2/OIS (not EFFR); CONTROL FOR policy surprise to isolate text's marginal effect; drop minutes; FOMC-RoBERTa on standalone STATEMENTS (1999+, densest real-time series, TDW unlabeled) + pressers; drop into proven harness.
