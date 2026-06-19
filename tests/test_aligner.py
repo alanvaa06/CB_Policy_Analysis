@@ -128,3 +128,42 @@ def test_dropped_release_logs_reason(caplog):
     msg = " ".join(r.getMessage() for r in warnings)
     assert str(release_ts) in msg          # names which release was dropped
     assert "DGS2" in msg and "22" in msg   # names the (series, h) target window
+
+
+def test_panel_joins_extra_features_on_release_date():
+    m = _market()
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    surprise = pd.DataFrame({"date": pd.to_datetime(["2020-01-29"]), "surprise": [0.07]})
+    cfg = Config(horizons=(1,), target_series=("DGS2",))
+    panel = build_aligned_panel(m, stance, cfg, extra_features=surprise)
+    assert "surprise" in panel.columns
+    assert panel["surprise"].iloc[0] == 0.07
+    assert "stance" in panel.columns
+    # no-leak invariant unchanged: target still reads exactly one future bar.
+    assert abs(panel["DGS2_h1"].iloc[0] - 0.01) < 1e-9
+
+def test_panel_drops_release_missing_extra_feature(caplog):
+    m = _market()
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    surprise = pd.DataFrame({"date": pd.to_datetime(["2019-12-11"]), "surprise": [0.07]})  # different date
+    cfg = Config(horizons=(1,), target_series=("DGS2",))
+    with caplog.at_level(logging.WARNING, logger="cbp.align.aligner"):
+        panel = build_aligned_panel(m, stance, cfg, extra_features=surprise)
+    assert panel.empty                                       # release has no surprise -> dropped
+    msg = " ".join(r.getMessage() for r in caplog.records)
+    assert "2020-01-29" in msg and "extra feature" in msg.lower()
+
+def test_panel_without_extra_features_unchanged():
+    # Backward compat: omitting extra_features must produce the Phase 0 panel exactly.
+    m = _market()
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    cfg = Config(horizons=(1, 5), target_series=("DGS2",))
+    panel = build_aligned_panel(m, stance, cfg)
+    assert "surprise" not in panel.columns
+    assert abs(panel["DGS2_h1"].iloc[0] - 0.01) < 1e-9
