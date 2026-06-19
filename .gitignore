@@ -28,6 +28,9 @@ data/
 *.sqlite
 *.db
 
+# Deep-research source dumps (kept locally, not versioned)
+docs/research_sources/
+
 # OS / editor
 .DS_Store
 Thumbs.db
