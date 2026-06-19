@@ -1,0 +1,38 @@
+# src/cbp/align/aligner.py
+from __future__ import annotations
+import numpy as np
+import pandas as pd
+from cbp.config import Config
+
+def forward_change(series: pd.Series, ts: pd.Timestamp, h: int) -> float:
+    """Change in `series` over the h business days STRICTLY AFTER ts.
+
+    base = last observation at/before ts; future = h-th observation after ts.
+    Returns NaN if the full window is unavailable or values are missing.
+    """
+    s = series.dropna().sort_index()
+    after = s[s.index > ts]
+    at_or_before = s[s.index <= ts]
+    if len(after) < h or at_or_before.empty:
+        return np.nan
+    base = at_or_before.iloc[-1]
+    future = after.iloc[h - 1]
+    return float(future - base)
+
+def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Config) -> pd.DataFrame:
+    rows = []
+    for _, r in stance.sort_values("release_ts").iterrows():
+        row = {"release_ts": r["release_ts"], "stance": r["stance"]}
+        ok = True
+        for sid in config.target_series:
+            if sid not in market.columns:
+                ok = False
+                break
+            for h in config.horizons:
+                val = forward_change(market[sid], r["release_ts"], h)
+                if np.isnan(val):
+                    ok = False
+                row[f"{sid}_h{h}"] = val
+        if ok:
+            rows.append(row)
+    return pd.DataFrame(rows)
