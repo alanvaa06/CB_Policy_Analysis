@@ -84,6 +84,23 @@ def test_panel_target_invariant_to_future_perturbation():
     past = build_aligned_panel(m_past, stance, cfg)["DGS2_h1"].iloc[0]
     assert past == base  # pre-base bar is never read -> exactly unchanged
 
+def test_panel_handles_tz_naive_market_index():
+    # Real FRED data has a tz-NAIVE DatetimeIndex, but release_ts is tz-aware UTC.
+    # The live run crashed here (pandas InvalidComparison). build_aligned_panel
+    # must normalize a tz-naive market index to UTC and still produce correct
+    # targets identical to the tz-aware case.
+    idx = pd.bdate_range("2020-01-27", "2020-02-28")  # tz-naive, like real FRED
+    vals = 1.00 + 0.01 * np.arange(len(idx))
+    market = pd.DataFrame({"DGS2": vals}, index=idx)
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-01-29"])})
+    cal["release_ts"] = pd.Timestamp("2020-01-29 19:00", tz="UTC")
+    stance = cal.assign(stance=0.5, doc_type="statement")
+    cfg = Config(horizons=(1, 5), target_series=("DGS2",))
+    panel = build_aligned_panel(market, stance, cfg)  # must not raise
+    assert len(panel) == 1
+    assert abs(panel["DGS2_h1"].iloc[0] - 0.01) < 1e-9
+    assert abs(panel["DGS2_h5"].iloc[0] - 0.05) < 1e-9
+
 def test_drop_release_when_window_incomplete():
     m = _market()
     # release near end of series: h=22 window cannot close -> row dropped

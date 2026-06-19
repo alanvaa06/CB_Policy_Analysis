@@ -24,6 +24,12 @@ def forward_change(series: pd.Series, ts: pd.Timestamp, h: int) -> float:
     return float(future - base)
 
 def build_aligned_panel(market: pd.DataFrame, stance: pd.DataFrame, config: Config) -> pd.DataFrame:
+    # release_ts is tz-aware UTC; real FRED data arrives tz-naive. Normalize a
+    # tz-naive market index to UTC so the index/ts comparisons in forward_change
+    # are valid (a naive calendar date is treated as that date at 00:00 UTC).
+    if isinstance(market.index, pd.DatetimeIndex) and market.index.tz is None:
+        market = market.copy()
+        market.index = market.index.tz_localize("UTC")
     rows = []
     for _, r in stance.sort_values("release_ts").iterrows():
         row = {"release_ts": r["release_ts"], "stance": r["stance"]}

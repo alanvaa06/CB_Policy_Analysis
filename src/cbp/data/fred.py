@@ -18,5 +18,7 @@ class FredClient:
     def fetch(self, series_ids: list[str], start: str, end: str) -> pd.DataFrame:
         cols = {sid: self._fred.get_series(sid, start, end) for sid in series_ids}
         df = pd.DataFrame(cols)
-        df.index = pd.to_datetime(df.index)
+        # FRED dates are tz-naive calendar dates; localize to UTC so the
+        # MarketSeries index is consistently tz-aware (matches release_ts).
+        df.index = pd.to_datetime(df.index).tz_localize("UTC")
         return df.sort_index()
