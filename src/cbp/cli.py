@@ -67,34 +67,47 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="FOMC stance eval harness")
     ap.add_argument("--mode", choices=["phase0", "phase1"], default="phase1")
     ap.add_argument("--start", default="1999-01-01")
-    ap.add_argument("--end", default="2022-12-31")
+    ap.add_argument("--end", default="2024-06-30")
+    ap.add_argument("--model", default=None, help="override RoBERTa model id (default: config.roberta_model_id)")
     args = ap.parse_args()
 
     from cbp.data.fred import FredClient
-    from cbp.data.fomc_calendar import load_fomc_calendar
     cfg = Config(fred_api_key=os.environ.get("FRED_API_KEY"))
     if not cfg.fred_api_key:
         raise SystemExit("Set FRED_API_KEY to run the live report.")
     market = FredClient(cfg.fred_api_key).fetch(list(cfg.target_series), args.start, args.end)
-    cal = load_fomc_calendar(cfg.data_dir / "raw" / "fomc_dates.csv")
 
     if args.mode == "phase0":
+        from cbp.data.fomc_calendar import load_fomc_calendar
         from cbp.data.stance import load_stance
+        cal = load_fomc_calendar(cfg.data_dir / "raw" / "fomc_dates.csv")
         stance = load_stance(cfg.data_dir / "raw" / "tdw_stance.csv", cal)
         _print_report(run_report(market, stance, cfg))
         return
 
-    # phase1: real statements -> FOMC-RoBERTa stance -> BS surprise control -> nested OOS
+    # phase1: the canonical FOMC announcement dates AND the orthogonalized surprise
+    # come from one source (the Bauer-Swanson file) so statement fetching, the
+    # release calendar, and the control align 1:1. The TDW fomc_dates.csv is a
+    # multi-doc-type calendar (statements+minutes+speeches) and must NOT drive
+    # fetching — doing so scrapes misdated non-statements and misses real meetings.
     from cbp.data.fomc_statements import fetch_statements
     from cbp.models.stance_scorer import score_statements, load_fomc_roberta
     from cbp.data.stance import stance_frame_from_scores
     from cbp.data.mp_surprise import load_surprise
 
-    dates = [d.date() for d in cal["release_date"] if d.year >= 1999]
-    statements = fetch_statements(dates, cfg.data_dir / "raw" / "statements")
-    scores = score_statements(statements, load_fomc_roberta(cfg.roberta_model_id))
+    surprise = load_surprise(
+        cfg.data_dir / "raw" / "monetary-policy-surprises-data.xlsx",
+        sheet_name="FOMC (update 2023)", date_col="Date", surprise_col="MPS_ORTH",
+    )
+    surprise = surprise[surprise["date"].dt.year >= 1999].reset_index(drop=True)
+    # Release calendar from the same dates: announcement ~14:00 ET -> UTC (mirrors
+    # load_fomc_calendar so the leak-safe forward windows are unchanged).
+    ts_et = (surprise["date"] + pd.Timedelta(hours=14)).dt.tz_localize("America/New_York")
+    cal = pd.DataFrame({"release_date": surprise["date"], "release_ts": ts_et.dt.tz_convert("UTC")})
+
+    statements = fetch_statements([d.date() for d in surprise["date"]], cfg.data_dir / "raw" / "statements")
+    scores = score_statements(statements, load_fomc_roberta(args.model or cfg.roberta_model_id))
     stance = stance_frame_from_scores(scores, cal)
-    surprise = load_surprise(cfg.data_dir / "raw" / "monetary-policy-surprises-data.xlsx")
     _print_nested(run_nested_report(market, stance, surprise, cfg))
 
 if __name__ == "__main__":

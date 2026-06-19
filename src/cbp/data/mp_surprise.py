@@ -16,10 +16,16 @@ def load_surprise(
     one row per meeting, dropping rows with missing surprise, sorted by date.
     Column names are parameters: confirm them against the actual SF Fed file
     (PRD §11) and pass overrides if they differ from the defaults.
+
+    The real BS file double-prints a handful of pre-1999 *unscheduled* actions
+    (two intraday windows on the same date); the per-meeting contract is one row
+    per date, so same-date rows are collapsed keeping the LAST (later intraday
+    window). This keeps the series joinable by calendar date downstream.
     """
     raw = pd.read_excel(path, sheet_name=sheet_name)
     out = pd.DataFrame({
         "date": pd.to_datetime(raw[date_col]).dt.normalize(),
         "surprise": pd.to_numeric(raw[surprise_col], errors="coerce"),
     })
-    return out.dropna(subset=["surprise"]).sort_values("date").reset_index(drop=True)
+    out = out.dropna(subset=["surprise"]).sort_values("date")
+    return out.drop_duplicates(subset="date", keep="last").reset_index(drop=True)

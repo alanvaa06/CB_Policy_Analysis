@@ -6,6 +6,7 @@ Phase 0 — eval harness: DONE (T1-T13). Built + validated + live verdict (NO-GO
 
 Phase 0 merged to main + per-doc-type diagnostic DONE (see results.md).
 
-Phase 1 — marginal-effect harness: CODE DONE (PRD 002 + plan + T1-T16, branch phase-1-marginal-effect, 59 tests green; see results.md/memory.md). Open:
-- [pending] Phase 1 live run + go/no-go verdict (DoD §2-3): install [infer] extra; download BS surprise xlsx to data/raw/monetary-policy-surprises-data.xlsx + CONFIRM orthogonal col-name (default MP1_orthogonal) and 1999 coverage (else SF Fed USMPD / BS-2023 set); run `python -m cbp.cli --mode phase1`; write verdict (does statement stance add OOS R² beyond BS surprise on DGS2?).
-- [pending] merge phase-1-marginal-effect → main once verdict recorded.
+Phase 1 — marginal-effect harness: DONE. Code (T1-T16) + live verdict (NO-GO) complete. Verdict: docs/results/2026-06-19-phase1-verdict.md. ΔR²<0 at all 6 (DGS2/DGS1 × h1/5/22), n=177, 197 statements. Branch phase-1-verdict (62 tests green). Open:
+- [pending] merge phase-1-verdict → main.
+- [pending] (optional, low-priority) canonical re-run with gated gtfintechlab/FOMC-RoBERTa once HF access granted (drop --model); expected to confirm null.
+- [pending] (optional) if revisiting: document-level / attention-weighted stance instead of per-sentence-mean; intraday OIS target (cleaner than daily DGS).
