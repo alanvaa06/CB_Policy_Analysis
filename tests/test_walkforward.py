@@ -1,4 +1,6 @@
 # tests/test_walkforward.py
+import logging
+
 import numpy as np
 import pandas as pd
 from cbp.models.baseline import SimpleOLS, ZeroChange
@@ -39,3 +41,15 @@ def test_no_lookahead_future_perturbation_invariant():
         out1["y_pred"].iloc[:-1].reset_index(drop=True),
         out2["y_pred"].iloc[:-1].reset_index(drop=True),
     )
+
+def test_n0_skip_logs_count(caplog):
+    # PRD §7: leading releases below the N0 minimum are skipped; the count must
+    # be logged (INFO) so the drop is not silent.
+    p = _panel(30)
+    with caplog.at_level(logging.INFO, logger="cbp.eval.walkforward"):
+        out = run_walkforward(p, "DGS2_h1", SimpleOLS(), ZeroChange(), n0=20)
+    assert len(out) == 10  # behavior unchanged: 30 - 20 OOS predictions
+    infos = [r for r in caplog.records if r.levelno == logging.INFO]
+    assert infos, "expected an INFO log for the skipped leading releases"
+    msg = " ".join(r.getMessage() for r in infos)
+    assert "20" in msg  # states how many leading releases were skipped (n0)

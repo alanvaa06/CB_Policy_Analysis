@@ -1,4 +1,6 @@
 # tests/test_aligner.py
+import logging
+
 import numpy as np
 import pandas as pd
 from cbp.config import Config
@@ -91,3 +93,21 @@ def test_drop_release_when_window_incomplete():
     cfg = Config(horizons=(22,), target_series=("DGS2",))
     panel = build_aligned_panel(m, stance, cfg)
     assert panel.empty
+
+def test_dropped_release_logs_reason(caplog):
+    # PRD §7: a release whose target window cannot close must be dropped WITH a
+    # logged reason naming the release_ts and the (series, h) window that failed.
+    m = _market()
+    release_ts = pd.Timestamp("2020-02-27 19:00", tz="UTC")
+    cal = pd.DataFrame({"release_date": pd.to_datetime(["2020-02-27"])})
+    cal["release_ts"] = release_ts
+    stance = cal.assign(stance=0.1, doc_type="statement")
+    cfg = Config(horizons=(22,), target_series=("DGS2",))
+    with caplog.at_level(logging.WARNING, logger="cbp.align.aligner"):
+        panel = build_aligned_panel(m, stance, cfg)
+    assert panel.empty  # behavior unchanged: still dropped
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert warnings, "expected a WARNING log for the dropped release"
+    msg = " ".join(r.getMessage() for r in warnings)
+    assert str(release_ts) in msg          # names which release was dropped
+    assert "DGS2" in msg and "22" in msg   # names the (series, h) target window

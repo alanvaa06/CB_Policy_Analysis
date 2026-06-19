@@ -1,13 +1,23 @@
 # src/cbp/eval/walkforward.py
 from __future__ import annotations
+import logging
+
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 def run_walkforward(panel: pd.DataFrame, target_col: str, model, baseline, n0: int) -> pd.DataFrame:
     """Expanding-window OOS. For each release i >= n0, train on rows [0, i) and
     predict row i. Training never sees row i or any later row -> no look-ahead.
     """
     df = panel.sort_values("release_ts").reset_index(drop=True)
+    n_skipped = min(n0, len(df))
+    logger.info(
+        "Skipping first %d leading release(s) below the n0=%d minimum train size",
+        n_skipped,
+        n0,
+    )
     y = df[target_col].to_numpy(dtype=float)
     X = df[["stance"]].to_numpy(dtype=float)
     recs = []
