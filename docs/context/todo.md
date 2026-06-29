@@ -6,7 +6,5 @@ Phase 0 — eval harness: DONE (T1-T13). Built + validated + live verdict (NO-GO
 
 Phase 0 merged to main + per-doc-type diagnostic DONE (see results.md).
 
-Phase 1 — marginal-effect harness: DONE. Code (T1-T16) + live verdict (NO-GO) complete. Verdict: docs/results/2026-06-19-phase1-verdict.md. ΔR²<0 at all 6 (DGS2/DGS1 × h1/5/22), n=177, 197 statements. Branch phase-1-verdict (62 tests green). Open:
-- [pending] merge phase-1-verdict → main.
-- [pending] (optional, low-priority) canonical re-run with gated gtfintechlab/FOMC-RoBERTa once HF access granted (drop --model); expected to confirm null.
+Phase 1 — marginal-effect harness: DONE + merged (112aed2) + canonical-confirmed (2026-06-29). Verdict NO-GO: docs/results/2026-06-19-phase1-verdict.md. ΔR²<0 all 6 cells, n=177; canonical gtfintechlab/FOMC-RoBERTa = mirror to 4 decimals (provenance caveat CLOSED). Open:
 - [pending] (optional) if revisiting: document-level / attention-weighted stance instead of per-sentence-mean; intraday OIS target (cleaner than daily DGS).

@@ -1,6 +1,6 @@
 # Phase 1 Verdict — Does FOMC statement stance add predictive value beyond the policy surprise?
 
-**Date:** 2026-06-19 · **Status:** decided · **Result: NO-GO (publishable null)** · Spec: `docs/prd/002-fomc-marginal-effect.md`
+**Date:** 2026-06-19 (canonical-confirmed 2026-06-29) · **Status:** decided · **Result: NO-GO (publishable null)** · Spec: `docs/prd/002-fomc-marginal-effect.md`
 
 ## Question (PRD §1)
 Does the stance of the FOMC post-meeting statement carry out-of-sample predictive information for market rates **beyond** the known Bauer-Swanson monetary-policy surprise? Operationalized as a nested OOS comparison: feature set A = `[surprise]` vs B = `[surprise, stance]`; the text adds value iff `ΔR² = oos_r2(B) − oos_r2(A) > 0`.
@@ -43,7 +43,7 @@ Note the surprise-only base model itself has weak/negative OOS R² on multi-day 
 
 ## Caveats (PRD §11)
 - **Aggregation:** per-sentence-mean is crude; a null may reflect the aggregation, not the absence of information. A document-level or attention-weighted stance could differ.
-- **Model provenance:** ungated mirror, not the byte-verified gated original. Re-run with the canonical `gtfintechlab/FOMC-RoBERTa` once HF access is granted (`--model` flag) to confirm; weights are expected to match.
+- **Model provenance:** ~~ungated mirror, not byte-verified~~ **CLOSED 2026-06-29.** Canonical re-run on the gated `gtfintechlab/FOMC-RoBERTa` (HF access granted) produced **identical ΔR² and residual stats to 4 decimals at all 6 cells** → mirror `tim9510019` is byte-equivalent. Verdict holds on canonical weights.
 - **Target/control mismatch:** BS surprise is intraday-calibrated; DGS daily changes are noisier. Intraday OIS targets (out of scope) would be a cleaner test bed.
 - **Sample:** n = 177 OOS — adequate but magnitudes are noisy.
 
