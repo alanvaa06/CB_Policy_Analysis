@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import difflib
+import re
 
 import pandas as pd
 
-from cbp.models.stance_scorer import split_sentences
+from cbp.monitor.metrics import clean_statement
+
+_WORDS = re.compile(r"\w+|[^\w\s]")
 
 MEASURES = ["action", "lexicon_tone", "roberta_stance"]
 
@@ -36,12 +39,14 @@ def tone_deltas(history: pd.DataFrame) -> dict:
 
 
 def redline(prev_text: str, curr_text: str) -> list[dict]:
-    """Sentence-level track-changes diff of two statements.
+    """Word-level track-changes diff of two statements, over boilerplate-stripped text.
 
-    Splits both with the shared `split_sentences`, runs difflib over the sentence
-    lists, and emits ordered segments {op, prev, curr} with
-    op in {equal, insert, delete, replace}. Textual, not semantic (see PRD §11)."""
-    a, b = split_sentences(prev_text), split_sentences(curr_text)
+    Cleans both with clean_statement, tokenizes to whitespace-separated word runs, runs
+    difflib, and emits ordered segments {op, prev, curr} with
+    op in {equal, insert, delete, replace}. Reads as one paragraph with only the changed
+    words highlighted (vs the v1 sentence-block walls). Textual, not semantic."""
+    a = _WORDS.findall(clean_statement(prev_text))
+    b = _WORDS.findall(clean_statement(curr_text))
     segments: list[dict] = []
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
         prev = " ".join(a[i1:i2])
