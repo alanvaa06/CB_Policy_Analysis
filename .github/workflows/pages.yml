@@ -1,0 +1,33 @@
+name: Publish FOMC monitor dashboard
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/monitor/tone_history.csv"
+      - "data/monitor/latest_redline.json"
+      - "src/cbp/monitor/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch: {}
+permissions:
+  contents: write   # peaceiris pushes to the gh-pages branch
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install (torch-free — site extra only)
+        run: pip install -e ".[site]"
+      - name: Render dashboard from committed artifacts
+        run: python -m cbp.monitor --rebuild-only
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
