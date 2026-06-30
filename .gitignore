@@ -28,6 +28,8 @@ htmlcov/
 /data/*
 # ...except the versioned hawk/dove + action lexicons (source-controlled, not generated)
 !/data/lexicons/
+# ...and the versioned monitor artifacts (tone history, calendar, latest redline)
+!/data/monitor/
 *.parquet
 *.sqlite
 *.db
@@ -40,3 +42,6 @@ docs/research_sources/
 Thumbs.db
 .idea/
 .vscode/
+
+# Built dashboard (derived artifact; CI publishes it to gh-pages)
+/site/
