@@ -74,7 +74,8 @@ def run_monitor(
             statements = fetch_statements(todo, cfg.statements_dir, **kw)
             if not statements.empty:
                 clf = roberta if roberta is not None else build_classifier(cfg, use_roberta)
-                scored = score_all_measures(statements, lexicon_dir=cfg.lexicon_dir, roberta=clf)
+                scored = score_all_measures(statements, lexicon_dir=cfg.lexicon_dir,
+                                            themes_path=cfg.themes_path, roberta=clf)
                 history = upsert_history(history, scored)
                 save_history(history, cfg.history_path)
                 _write_latest_redline(cfg, history)
