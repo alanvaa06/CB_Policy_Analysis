@@ -63,13 +63,21 @@ def _print_nested(report: dict) -> None:
     for (sid, h), e in report["residual"].items():
         print(f"{sid:>8} h={h:>2}: slope={e['slope']:+.4f}  t={e['tstat']:+.2f}  r2={e['r2']:.3f}  n={e['n']}")
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="FOMC stance eval harness")
     ap.add_argument("--mode", choices=["phase0", "phase1"], default="phase1")
     ap.add_argument("--start", default="1999-01-01")
     ap.add_argument("--end", default="2024-06-30")
-    ap.add_argument("--model", default=None, help="override RoBERTa model id (default: config.roberta_model_id)")
-    args = ap.parse_args()
+    ap.add_argument("--model", default=None,
+                    help="override RoBERTa model id (default: config.roberta_model_id)")
+    ap.add_argument("--tone-method", choices=["roberta", "lexicon"], default="roberta",
+                    dest="tone_method",
+                    help="stance source for --mode phase1 (default: roberta)")
+    return ap
+
+
+def main() -> None:
+    args = build_parser().parse_args()
 
     from cbp.data.fred import FredClient
     cfg = Config(fred_api_key=os.environ.get("FRED_API_KEY"))
@@ -106,7 +114,12 @@ def main() -> None:
     cal = pd.DataFrame({"release_date": surprise["date"], "release_ts": ts_et.dt.tz_convert("UTC")})
 
     statements = fetch_statements([d.date() for d in surprise["date"]], cfg.data_dir / "raw" / "statements")
-    scores = score_statements(statements, load_fomc_roberta(args.model or cfg.roberta_model_id))
+    if args.tone_method == "lexicon":
+        from cbp.models.lexicon_scorer import load_lexicon, score_statements_lexicon
+        hawk, dove = load_lexicon(cfg.lexicon_path)
+        scores = score_statements_lexicon(statements, hawk, dove)
+    else:
+        scores = score_statements(statements, load_fomc_roberta(args.model or cfg.roberta_model_id))
     stance = stance_frame_from_scores(scores, cal)
     _print_nested(run_nested_report(market, stance, surprise, cfg))
 
