@@ -35,3 +35,8 @@ def test_repo_calendar_exists_and_covers_recent_meetings():
     assert len(cal) >= 180                      # 1999→2026 ≈ 8/yr
     assert dt.date(2026, 6, 17) in cal          # last RECENT_DATES entry
     assert min(cal).year <= 1999 and max(cal).year >= 2026
+    # Regression guard: NaN-surprise meetings must survive the date source.
+    # 2020 FOMC meetings carry a NaN MPS_ORTH surprise; sourcing dates through
+    # load_surprise's dropna would silently drop the entire COVID-2020 run.
+    assert dt.date(2020, 4, 29) in cal          # scheduled COVID-2020 meeting
+    assert dt.date(2001, 9, 17) in cal          # post-9/11 emergency cut

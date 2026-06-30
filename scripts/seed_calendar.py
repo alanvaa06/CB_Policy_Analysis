@@ -6,6 +6,15 @@ the post-2023 meeting dates the BS file doesn't cover, and writes a single sorte
 `date` column. This file REPLACES the hand-maintained RECENT_DATES list in
 scripts/action_tone_monitor.py — extend POST_2023 once a year from the Fed calendar.
 
+load_surprise() drops rows with a NaN MPS_ORTH surprise, which silently deletes nine
+genuine statement-producing meetings whose surprise is unobserved: the six scheduled
+COVID-2020 FOMC meetings, the two March-2020 emergency rate cuts, and the 2001-09-17
+post-9/11 cut. Those meetings still produced statements the monitor must score, so we
+add them back explicitly via NAN_SURPRISE_MEETINGS. The remaining NaN-surprise dates
+the loader drops (2020-03-19/03-23/03-31 balance-sheet & swap-line announcements,
+2020-08-27 Jackson Hole framework) are NOT standard rate-decision statements and are
+deliberately left out, so load_surprise's dropna is the right base for them.
+
 Usage: python scripts/seed_calendar.py   (needs the BS xlsx under data/raw/; .[dev])
 """
 from pathlib import Path
@@ -22,13 +31,23 @@ POST_2023 = [
     "2026-04-29", "2026-06-17",
 ]
 
+# Genuine statement-producing FOMC meetings the BS xlsx carries with a NaN MPS_ORTH
+# surprise. load_surprise() drops these (dropna on 'surprise'), so without this
+# supplement the monitor never scores them. Covers the six scheduled COVID-2020
+# meetings, the two March-2020 emergency rate cuts, and the 2001-09-17 post-9/11 cut.
+NAN_SURPRISE_MEETINGS = [
+    "2001-09-17", "2020-03-03", "2020-03-15", "2020-04-29", "2020-06-10",
+    "2020-07-29", "2020-09-16", "2020-11-05", "2020-12-16",
+]
+
 
 def main() -> None:
     cfg = Config()
     su = load_surprise(cfg.data_dir / "raw" / "monetary-policy-surprises-data.xlsx",
                        sheet_name="FOMC (update 2023)", date_col="Date", surprise_col="MPS_ORTH")
     su = su[su["date"].dt.year >= 1999]
-    dates = sorted({d.date() for d in su["date"]} | {pd.Timestamp(s).date() for s in POST_2023})
+    supplemental = NAN_SURPRISE_MEETINGS + POST_2023
+    dates = sorted({d.date() for d in su["date"]} | {pd.Timestamp(s).date() for s in supplemental})
     out = Path("data/monitor/fomc_calendar.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame({"date": [d.isoformat() for d in dates]}).to_csv(out, index=False)
