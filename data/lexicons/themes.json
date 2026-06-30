@@ -1,0 +1,12 @@
+{
+  "themes": {
+    "inflation": ["inflat", "price", "pce", "deflat", "disinflat"],
+    "employment": ["employ", "labor", "labour", "job", "unemploy", "payroll", "wage", "hiring"],
+    "growth": ["growth", "activ", "spend", "demand", "output", "expansion", "gdp", "product", "invest", "consum"],
+    "balance_sheet": ["securit", "holding", "reserve", "reinvest", "runoff", "mortgage", "treasur", "redempt"],
+    "financial_conditions": ["financ", "credit", "bank", "lending", "market", "borrow"]
+  },
+  "uncertainty": ["uncertain", "risk", "depend", "could", "evolv", "carefully", "assess"],
+  "sources": ["seed list, corpus-checkable against cached statements"],
+  "notes": "Single-token stems matched by token.startswith (like hawk_dove.json). Intensity = hits per 1000 words; descriptive presence, not sentiment."
+}

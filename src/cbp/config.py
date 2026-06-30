@@ -13,6 +13,7 @@ class Config:
     roberta_model_id: str = "gtfintechlab/FOMC-RoBERTa"
     lexicon_path: Path = Path("data/lexicons/hawk_dove.json")
     lexicon_dir: Path = Path("data/lexicons")
+    themes_path: Path = Path("data/lexicons/themes.json")
     statements_dir: Path = Path("data/raw/statements")
     monitor_dir: Path = Path("data/monitor")
     history_path: Path = Path("data/monitor/tone_history.csv")
