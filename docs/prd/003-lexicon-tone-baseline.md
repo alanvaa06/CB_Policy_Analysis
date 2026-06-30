@@ -31,8 +31,9 @@ left by Phase 1.
 ## 2. Scope
 
 **In scope (Phase 2a v1):**
-- A version-controlled hawkish/dovish term list sourced from published monetary-policy
-  dictionaries (Apel & Blix Grimaldi 2012; Bennani & Neuenkirch 2017) — not invented.
+- A small, **corpus-validated policy-stance** term list (seeded from published
+  monetary-policy dictionaries — Apel & Blix Grimaldi 2012; Bennani & Neuenkirch 2017 —
+  but pruned to words that actually fire in FOMC *statements* and are directionally clean).
 - A pure, tested lexicon scorer producing per-statement net tone, **document-level**.
 - A CLI switch to run `--mode phase1` with the lexicon measure instead of RoBERTa,
   reusing the surprise control, alignment, and nested OOS unchanged.
@@ -52,11 +53,16 @@ fully unit-testable offline (no network, no model).
 NEW:
   models/lexicon_scorer.py   # tokenize + stem-match + score_statements_lexicon (pure)
   data/lexicons/hawk_dove.json  # versioned term lists + provenance (data, not code)
-  scripts/plot_tone_timeseries.py  # lexicon vs RoBERTa tone(t) -> PNG
+  viz/tone_compare.py        # build_tone_comparison (pure pandas, unit-tested)
+  scripts/plot_tone_timeseries.py  # matplotlib wrapper over build_tone_comparison -> PNG
 EXTENDED:
   cli.py     # --tone-method {roberta,lexicon}; only the stance-building line branches
   config.py  # lexicon path (default)
 ```
+
+The pure comparison logic lives in `src/cbp/viz/tone_compare.py` (pandas only) so it is
+importable under pytest (`pythonpath=["src"]`); matplotlib stays in the `scripts/`
+wrapper, never imported by the harness or tests.
 
 Downstream (`stance_frame_from_scores`, `build_aligned_panel`, `nested_oos`,
 `residual_stance_regression`) is **untouched** — the lexicon scorer emits the same
@@ -79,17 +85,28 @@ Signatures:
 
 ## 5. Lexicon & matching
 
-- **Term lists**: a curated seed (~40–80 terms/side) lifted from the published
-  dictionaries above, each side a flat list of lowercase **stems**. Provenance and the
-  exact source mapping are recorded in the JSON (`sources`/`notes` keys) and in `memory.md`.
+- **Policy-stance terms only.** v1 counts a SMALL set of words that name the Fed's
+  policy *stance/action* (e.g. `restrictive`, `accommodative`, `tightening`, `firming`,
+  `easing`) — explicitly **not** economic-condition words (`weak`, `robust`, `downside`,
+  `slack`) and **not** dual-mandate boilerplate (`inflation` appears in ~51% of statements
+  regardless of stance). Condition/boilerplate words conflate the *economy* (recession →
+  more "downside" language) with Fed *intent*; they are excluded by design (see §11).
+  These exclusions are enforced by a unit test, not just convention.
+- **Corpus-validated, not blind.** Candidate stems are seeded from the published
+  dictionaries but **finalized by validation against the cached statements**: each kept
+  stem must (a) actually fire and (b) be directionally clean in a sampled-context check.
+  Dead seeds (`hawkish`, `dovish`, `vigilant` — 0 hits in statements) and flip-prone
+  terms are dropped. Kept/dropped decisions + residual caveats are recorded in the JSON
+  `notes`/`excluded` keys. The final list is expected to be **small (~4–8 stems/side)**
+  and to fire on a *subset* of statements (→ honest `0.0` neutrals when no stance word appears).
 - **Stem match**: a token counts for a side if it *starts with* any stem on that side
-  (so `tighten` → matches `tighten`, `tightening`, `tightened`). Dependency-free, no
-  nltk/Porter; the stem list is hand-checked to avoid false prefixes (e.g. use
-  `inflationar` not `inflat` so `inflate`≈ok but `inflexible`✗). Stems and any guarded
-  exclusions are unit-tested.
-- **Document-level**: count all hawk/dove tokens across the whole statement, one ratio
-  per statement (no sentence split). This is the transparent word-count reading and
-  also exercises the Phase-2 "read the whole document" idea.
+  (`tighten` → `tighten`/`tightening`/`tightened`). Dependency-free, no nltk/Porter;
+  stems hand-checked for false prefixes (prefer the polarity-stable adjective
+  `accommodative` over the flip-prone noun stem `accommodat`, which also matches
+  "removing accommodation" = hawkish). Unit-tested.
+- **Document-level ratio**: `(n_hawk − n_dove)/(n_hawk + n_dove)` over the whole
+  statement — a length-normalized proportion, `0.0` when no stance word fires. No
+  sentence split (also exercises the Phase-2 "read the whole document" idea).
 
 ## 6. Eval — reuse Phase 1 nested OOS
 
@@ -118,7 +135,9 @@ reproducible, version-controlled.
 ## 9. Stack & conventions
 
 Pure-Python + pandas; **no new runtime deps** (the lexicon loads via stdlib `json`).
-Matplotlib for the plot script only (dev/optional, not imported by the harness or tests). Typed; tests accompany every
+The pure tone-comparison logic lives in `src/cbp/viz/tone_compare.py` (pandas only) so it
+unit-tests under `pythonpath=["src"]`; matplotlib is imported only inside
+`scripts/plot_tone_timeseries.py` `main()` (dev/optional, never by the harness or tests). Typed; tests accompany every
 module. The lexicon path runs in seconds — no GPU, no download.
 
 ## 10. Success criteria (Definition of Done)
@@ -135,10 +154,18 @@ module. The lexicon path runs in seconds — no GPU, no download.
 
 ## 11. Caveats / risks
 
-- **No negation:** "not accommodative", "less restrictive" mis-score. Recorded; v1
-  baseline by design. A measurable fraction of FOMC hedging — interpret the level with care.
+- **No negation / residual polarity flip:** "not accommodative", "less restrictive",
+  and crucially "removing accommodation" / "policy firming may be appropriate" flip the
+  intent of a stance token. v1 document-level word-count cannot parse this; the
+  corpus-validation prefers polarity-stable adjectives and records the residual, but this
+  is the measure's known floor — it reads stated-stance *language*, not policy *intent*.
+- **Confound exclusions (why the list is small):** condition words (`weak`/`robust`/
+  `downside`) and boilerplate (`inflation`) were dropped because document-level counts of
+  them track the *economy*, not Fed stance (a recession statement accumulates "downside"
+  regardless of policy). This makes v1 fire on a subset of statements — a smaller, honest
+  signal rather than a large confounded one. Validated against the corpus (§5).
 - **Stem false-positives:** prefix matching can over/under-count; mitigated by hand-checked
-  stems + unit tests, but the list is a judgment call and its provenance is the defense.
+  stems + unit tests, but the kept list is a judgment call and its corpus-validation is the defense.
 - **Document-level ≠ RoBERTa per-sentence:** the two measures aggregate differently, so a
   low lexicon-vs-RoBERTa correlation could be aggregation, not construct. Note when comparing.
 - **Same control, same caveats:** BS surprise is intraday-calibrated vs daily DGS (Phase 1
