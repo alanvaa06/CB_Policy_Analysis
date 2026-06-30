@@ -1,0 +1,12 @@
+{
+  "hawk": ["raise"],
+  "dove": ["lower"],
+  "sources": ["FOMC post-meeting statements 1999-2026, corpus-validated rate-action verbs"],
+  "excluded": {
+    "increas": "mostly 'increase in costs' / 'increase in the discount rate', not the funds-rate target (confounded)",
+    "reduc": "mixes rate reductions with QT 'reducing its holdings' (confounded)",
+    "cut": "appears as 'cut back' production/spending, not rate cuts",
+    "hike": "0 hits - not used in FOMC statement prose"
+  },
+  "notes": "DESCRIPTIVE / MONITORING ONLY - NOT predictive. Pure rate-ACTION verbs: 'raise' / 'lower its target for the federal funds rate'. By construction this index mirrors the policy DECISION itself, so it is redundant with any rate-surprise control and carries NO marginal out-of-sample value (see docs/results/2026-06-29-lexicon-baseline-verdict.md). Built because the predictive stance lexicon (hawk_dove.json) goes silent on 2024+ statements, which express stance only through the action verb. Use for a hike/cut/hold tracker; never feed it to the marginal-effect test."
+}

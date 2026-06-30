@@ -71,8 +71,9 @@ FRED_API_KEY=... python -m cbp.cli --mode phase1 --tone-method lexicon
 python scripts/lexicon_confound_check.py     # regime/era hardening of the h=1 result
 python scripts/plot_tone_timeseries.py       # lexicon vs RoBERTa tone over time
 python scripts/plot_verdict_figures.py       # the 5-figure verdict pack -> docs/results/figures/
+python scripts/action_tone_monitor.py        # descriptive hike/cut/hold tracker (MONITORING only, not predictive)
 
-pytest                                        # 81 tests
+pytest                                        # 83 tests
 ```
 
 ## Method notes
@@ -84,6 +85,10 @@ pytest                                        # 81 tests
   Bauer-Swanson orthogonalized surprise." A null here is a real, publishable result.
 - **Lexicon transparency:** the hawk/dove list is small, corpus-validated, and excludes boilerplate
   (`inflation`), economic-condition valence (`weak`/`downside`), and dead seeds — by design and by test.
+- **Two lexicons, two jobs:** `hawk_dove.json` is the *predictive* stance measure (tested above); it goes
+  silent on 2024+ statements, which use action verbs not stance adjectives. `action_tone.json` is a
+  separate *descriptive* hike/cut/hold tracker (`raise`/`lower`) — it mirrors the decision, so it is
+  monitoring-only and carries no marginal predictive value by construction.
 
 ## Working memory & conventions
 

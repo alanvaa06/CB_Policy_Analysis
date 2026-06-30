@@ -23,10 +23,11 @@ htmlcov/
 !.env.example
 
 # Generated data artifacts (repo-root data dir only; not src/cbp/data package)
-/data/
-# ...except the versioned hawk/dove lexicon (source-controlled, not generated)
+# NB: ignore the CONTENTS (/data/*) not the dir itself, so the negation below can
+# re-include data/lexicons/ — git won't recurse into an excluded directory.
+/data/*
+# ...except the versioned hawk/dove + action lexicons (source-controlled, not generated)
 !/data/lexicons/
-!/data/lexicons/**
 *.parquet
 *.sqlite
 *.db
