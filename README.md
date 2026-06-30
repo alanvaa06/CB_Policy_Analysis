@@ -10,7 +10,7 @@ rates that the rate decision itself doesn't?* So far, rigorously, the answer is 
 and the value is a trustworthy apparatus that can prove it (and catch the confounds that
 make weaker analyses say "yes").
 
-**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (104 tests). Research-grade, not a trading signal.
+**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (128 tests). Research-grade, not a trading signal.
 
 ## Findings so far
 
@@ -73,7 +73,7 @@ python scripts/plot_tone_timeseries.py       # lexicon vs RoBERTa tone over time
 python scripts/plot_verdict_figures.py       # the 5-figure verdict pack -> docs/results/figures/
 python -m cbp.monitor --rebuild-only         # rebuild the descriptive dashboard (see "Statement monitor" below)
 
-pytest                                        # 104 tests
+pytest                                        # 128 tests
 ```
 
 ### FOMC Statement Tracker (live dashboard)
