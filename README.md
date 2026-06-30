@@ -10,7 +10,7 @@ rates that the rate decision itself doesn't?* So far, rigorously, the answer is 
 and the value is a trustworthy apparatus that can prove it (and catch the confounds that
 make weaker analyses say "yes").
 
-**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (81 tests). Research-grade, not a trading signal.
+**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (104 tests). Research-grade, not a trading signal.
 
 ## Findings so far
 
@@ -71,10 +71,22 @@ FRED_API_KEY=... python -m cbp.cli --mode phase1 --tone-method lexicon
 python scripts/lexicon_confound_check.py     # regime/era hardening of the h=1 result
 python scripts/plot_tone_timeseries.py       # lexicon vs RoBERTa tone over time
 python scripts/plot_verdict_figures.py       # the 5-figure verdict pack -> docs/results/figures/
-python scripts/action_tone_monitor.py        # descriptive hike/cut/hold tracker (MONITORING only, not predictive)
+python -m cbp.monitor --rebuild-only         # rebuild the descriptive dashboard (see "Statement monitor" below)
 
-pytest                                        # 83 tests
+pytest                                        # 104 tests
 ```
+
+### Statement monitor → dashboard (descriptive, not predictive)
+
+```bash
+python -m cbp.monitor                 # score new statements + rebuild dashboard (needs .[infer,site])
+python -m cbp.monitor --no-roberta    # torch-free fast run (RoBERTa column gapped)
+python -m cbp.monitor --rebuild-only  # re-render HTML from committed CSV (the CI path; .[site] only)
+```
+
+Each run upserts `data/monitor/tone_history.csv` + `data/monitor/latest_redline.json` (commit both);
+CI (`.github/workflows/pages.yml`) re-renders and publishes to the `gh-pages` branch. Extend the
+meeting list yearly in `data/monitor/fomc_calendar.csv` (`scripts/seed_calendar.py`).
 
 ## Method notes
 

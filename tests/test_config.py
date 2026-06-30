@@ -21,3 +21,14 @@ def test_frozen():
 def test_config_has_lexicon_path_default():
     cfg = Config()
     assert cfg.lexicon_path == Path("data/lexicons/hawk_dove.json")
+
+
+def test_config_monitor_paths_defaults():
+    c = Config()
+    assert c.monitor_dir == Path("data/monitor")
+    assert c.history_path == Path("data/monitor/tone_history.csv")
+    assert c.calendar_path == Path("data/monitor/fomc_calendar.csv")
+    assert c.redline_path == Path("data/monitor/latest_redline.json")
+    assert c.lexicon_dir == Path("data/lexicons")
+    assert c.statements_dir == Path("data/raw/statements")
+    assert c.site_out == Path("site/index.html")

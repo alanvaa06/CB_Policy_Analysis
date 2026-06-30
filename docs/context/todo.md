@@ -2,6 +2,8 @@
 
 > Open work only. Status: `pending` / `in_progress`. Done → move to `results.md`. Cap ~2.5k tokens.
 
+Monitor (PRD 004) DONE on feat/statement-monitor. Open: [pending] merge → main; [pending] extend fomc_calendar.csv each Dec from the Fed calendar.
+
 Phase 0 — eval harness: DONE (T1-T13). Built + validated + live verdict (NO-GO on throwaway, harness trustworthy). See results.md/memory.md. Branch: phase-0-eval-harness (30 tests green).
 
 Phase 0 merged to main + per-doc-type diagnostic DONE (see results.md).
