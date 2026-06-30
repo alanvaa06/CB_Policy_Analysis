@@ -76,6 +76,18 @@ python scripts/action_tone_monitor.py        # descriptive hike/cut/hold tracker
 pytest                                        # 83 tests
 ```
 
+### Statement monitor → dashboard (descriptive, not predictive)
+
+```bash
+python -m cbp.monitor                 # score new statements + rebuild dashboard (needs .[infer,site])
+python -m cbp.monitor --no-roberta    # torch-free fast run (RoBERTa column gapped)
+python -m cbp.monitor --rebuild-only  # re-render HTML from committed CSV (the CI path; .[site] only)
+```
+
+Each run upserts `data/monitor/tone_history.csv` + `data/monitor/latest_redline.json` (commit both);
+CI (`.github/workflows/pages.yml`) re-renders and publishes to the `gh-pages` branch. Extend the
+meeting list yearly in `data/monitor/fomc_calendar.csv` (`scripts/seed_calendar.py`).
+
 ## Method notes
 
 - **Leak-safety:** targets are strictly forward of each release timestamp; the walk-forward trains

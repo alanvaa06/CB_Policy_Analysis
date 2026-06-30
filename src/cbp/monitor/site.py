@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-VERDICT_URL = "https://github.com/"  # replaced with the repo verdict link in Task 10
+VERDICT_URL = "https://github.com/alanvaa06/CB_Policy_Analysis/blob/main/docs/results/2026-06-29-lexicon-baseline-verdict.md"
 _LEVELS = [("action", "action"), ("lexicon_tone", "lexicon"), ("roberta_stance", "RoBERTa")]
 
 
