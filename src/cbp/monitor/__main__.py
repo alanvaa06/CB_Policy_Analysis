@@ -74,8 +74,15 @@ def run_monitor(
             statements = fetch_statements(todo, cfg.statements_dir, **kw)
             if not statements.empty:
                 clf = roberta if roberta is not None else build_classifier(cfg, use_roberta)
+                prior_text = None
+                if len(history):
+                    last_date = pd.Timestamp(history["date"].iloc[-1]).date()
+                    prior = fetch_statements([last_date], cfg.statements_dir, **kw)
+                    if not prior.empty:
+                        prior_text = prior.iloc[0]["text"]
                 scored = score_all_measures(statements, lexicon_dir=cfg.lexicon_dir,
-                                            themes_path=cfg.themes_path, roberta=clf)
+                                            themes_path=cfg.themes_path, roberta=clf,
+                                            prior_text=prior_text)
                 history = upsert_history(history, scored)
                 save_history(history, cfg.history_path)
                 _write_latest_redline(cfg, history)
