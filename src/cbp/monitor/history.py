@@ -5,7 +5,10 @@ from pathlib import Path
 
 import pandas as pd
 
-HISTORY_COLUMNS = ["date", "action", "lexicon_tone", "roberta_stance", "n_sentences"]
+THEME_COLUMNS = ["theme_inflation", "theme_employment", "theme_growth",
+                 "theme_balance_sheet", "theme_financial_conditions"]
+METRIC_COLUMNS = ["word_count", "flesch", "uncertainty_per1k", "change_magnitude", *THEME_COLUMNS]
+HISTORY_COLUMNS = ["date", "action", "lexicon_tone", "roberta_stance", "n_sentences", *METRIC_COLUMNS]
 
 
 def load_history(path: Path) -> pd.DataFrame:
@@ -26,6 +29,10 @@ def load_history(path: Path) -> pd.DataFrame:
 def upsert_history(history: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
     """Append `new` rows; on a duplicate date the new row wins. Result is sorted by
     date, de-duplicated, index reset. Idempotent: re-upserting identical rows is a no-op."""
+    new = new.copy()
+    for c in HISTORY_COLUMNS:
+        if c not in new.columns:
+            new[c] = pd.NA
     combined = pd.concat([history, new[HISTORY_COLUMNS]], ignore_index=True)
     combined["date"] = pd.to_datetime(combined["date"])
     return (combined.drop_duplicates("date", keep="last")

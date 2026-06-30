@@ -43,4 +43,4 @@ def score_all_measures(
         out = out.merge(rob, on="date", how="left")
     else:
         out["roberta_stance"] = float("nan")
-    return out[HISTORY_COLUMNS]
+    return out.reindex(columns=HISTORY_COLUMNS)
