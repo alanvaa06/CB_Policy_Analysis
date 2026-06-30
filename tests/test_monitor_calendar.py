@@ -1,5 +1,7 @@
 # tests/test_monitor_calendar.py
 import datetime as dt
+from pathlib import Path
+
 import pandas as pd
 import pytest
 from cbp.monitor.calendar import load_calendar, pending_dates
@@ -26,3 +28,10 @@ def test_pending_dates_empty_history_returns_all():
     cal = [dt.date(2024, 1, 31), dt.date(2024, 3, 20)]
     history = pd.DataFrame({"date": pd.Series(dtype="datetime64[ns]")})
     assert pending_dates(cal, history) == cal
+
+
+def test_repo_calendar_exists_and_covers_recent_meetings():
+    cal = load_calendar(Path("data/monitor/fomc_calendar.csv"))
+    assert len(cal) >= 180                      # 1999→2026 ≈ 8/yr
+    assert dt.date(2026, 6, 17) in cal          # last RECENT_DATES entry
+    assert min(cal).year <= 1999 and max(cal).year >= 2026
