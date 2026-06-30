@@ -10,7 +10,7 @@ rates that the rate decision itself doesn't?* So far, rigorously, the answer is 
 and the value is a trustworthy apparatus that can prove it (and catch the confounds that
 make weaker analyses say "yes").
 
-**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (81 tests). Research-grade, not a trading signal.
+**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (104 tests). Research-grade, not a trading signal.
 
 ## Findings so far
 
@@ -71,9 +71,9 @@ FRED_API_KEY=... python -m cbp.cli --mode phase1 --tone-method lexicon
 python scripts/lexicon_confound_check.py     # regime/era hardening of the h=1 result
 python scripts/plot_tone_timeseries.py       # lexicon vs RoBERTa tone over time
 python scripts/plot_verdict_figures.py       # the 5-figure verdict pack -> docs/results/figures/
-python scripts/action_tone_monitor.py        # descriptive hike/cut/hold tracker (MONITORING only, not predictive)
+python -m cbp.monitor --rebuild-only         # rebuild the descriptive dashboard (see "Statement monitor" below)
 
-pytest                                        # 83 tests
+pytest                                        # 104 tests
 ```
 
 ### Statement monitor → dashboard (descriptive, not predictive)
