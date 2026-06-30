@@ -25,6 +25,15 @@ def test_load_lexicon_missing_file_raises_valueerror():
         load_lexicon(Path("does/not/exist.json"))
 
 
+def test_load_lexicon_nonstring_entry_raises_valueerror(tmp_path):
+    # malformed: list contains a non-string -> .lower() would AttributeError;
+    # must surface as the promised ValueError naming the path (spec 003 §8)
+    p = tmp_path / "bad.json"
+    p.write_text(json.dumps({"hawk": [1, 2], "dove": ["ease"]}))
+    with pytest.raises(ValueError, match="lexicon"):
+        load_lexicon(p)
+
+
 def test_repo_lexicon_is_small_disjoint_and_policy_stance():
     hawk, dove = load_lexicon(Path("data/lexicons/hawk_dove.json"))
     assert 3 <= len(hawk) <= 8 and 3 <= len(dove) <= 8   # small, corpus-validated set

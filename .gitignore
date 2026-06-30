@@ -24,6 +24,9 @@ htmlcov/
 
 # Generated data artifacts (repo-root data dir only; not src/cbp/data package)
 /data/
+# ...except the versioned hawk/dove lexicon (source-controlled, not generated)
+!/data/lexicons/
+!/data/lexicons/**
 *.parquet
 *.sqlite
 *.db

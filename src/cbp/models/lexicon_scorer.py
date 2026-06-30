@@ -64,6 +64,6 @@ def load_lexicon(path: Path) -> tuple[frozenset[str], frozenset[str]]:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         hawk = frozenset(w.lower() for w in data["hawk"])
         dove = frozenset(w.lower() for w in data["dove"])
-    except (OSError, json.JSONDecodeError, KeyError, TypeError) as e:
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, AttributeError) as e:
         raise ValueError(f"could not load lexicon from {path}: {e}") from e
     return hawk, dove
