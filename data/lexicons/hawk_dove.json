@@ -1,0 +1,17 @@
+{
+  "hawk": ["tighten", "restrictive", "firming"],
+  "dove": ["accommodative", "easing", "stimulus"],
+  "sources": [
+    "Apel & Blix Grimaldi (2012), 'The Information Content of Central Bank Minutes'",
+    "Bennani & Neuenkirch (2017), 'The (Home) Bias of European Central Bankers'"
+  ],
+  "excluded": {
+    "inflation": "dual-mandate boilerplate, ~51% of statements, not a stance signal",
+    "weak/downside/robust/slack/upside": "economic-condition valence — tracks the economy, not Fed intent",
+    "gradual/patient/elevated": "context-dependent, flips with syntax",
+    "hawkish/dovish/vigilant/withdraw/resolute": "0-1 hits in FOMC statements (dicts built for speeches/minutes)",
+    "restraint": "fiscal restraint / restraint on spending — not Fed policy intent (12 files, mixed context)",
+    "supportive": "supportive of economic growth — economic condition, not Fed intent (6 files)"
+  },
+  "notes": "Policy-stance words only; corpus-validated against data/raw/statements (Step 3). Stem-match (startswith). 'accommodative' (adjective) chosen over 'accommodat' (noun stem) because 'removing accommodation' is hawkish. Document-level word-count; v1 ignores negation/polarity flip (PRD 003 §11). Hawk: tighten (16 files), restrictive (5 files), firming (28 files). Dove: accommodative (95 files), easing (16 files), stimulus (7 files). restraint dropped (mixed context: fiscal restraint, restraint on spending). supportive dropped (economic-condition framing, not Fed intent)."
+}
