@@ -2,6 +2,8 @@
 
 > Open work only. Status: `pending` / `in_progress`. Done → move to `results.md`. Cap ~2.5k tokens.
 
+Tracker v2 (PRD 005) DONE on feat/statement-tracker-v2. Open: [pending] merge → main (CI republishes); [pending] optional heavy `.[infer]` run to fill roberta_stance; [pending] spot-check themes.json stems vs corpus.
+
 Monitor (PRD 004) DONE on feat/statement-monitor. Open: [pending] merge → main; [pending] extend fomc_calendar.csv each Dec from the Fed calendar.
 
 Phase 0 — eval harness: DONE (T1-T13). Built + validated + live verdict (NO-GO on throwaway, harness trustworthy). See results.md/memory.md. Branch: phase-0-eval-harness (30 tests green).
