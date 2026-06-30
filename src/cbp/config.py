@@ -11,3 +11,4 @@ class Config:
     data_dir: Path = Path("data")
     fred_api_key: str | None = None
     roberta_model_id: str = "gtfintechlab/FOMC-RoBERTa"
+    lexicon_path: Path = Path("data/lexicons/hawk_dove.json")

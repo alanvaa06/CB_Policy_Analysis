@@ -16,3 +16,8 @@ def test_frozen():
     import pytest
     with pytest.raises(Exception):
         c.n0 = 5  # frozen
+
+
+def test_config_has_lexicon_path_default():
+    cfg = Config()
+    assert cfg.lexicon_path == Path("data/lexicons/hawk_dove.json")
