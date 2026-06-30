@@ -3,9 +3,18 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+_WORD = re.compile(r"[a-z]+")
+
+
+def tokenize(text: str) -> list[str]:
+    """Lowercase and split into alphabetic word tokens. Drops digits and
+    punctuation. Deterministic and dependency-free."""
+    return _WORD.findall(text.lower())
 
 
 def load_lexicon(path: Path) -> tuple[frozenset[str], frozenset[str]]:

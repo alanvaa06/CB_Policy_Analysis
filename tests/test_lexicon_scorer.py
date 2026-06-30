@@ -3,6 +3,7 @@ import json
 import pytest
 from pathlib import Path
 from cbp.models.lexicon_scorer import load_lexicon
+from cbp.models.lexicon_scorer import tokenize
 
 
 def test_load_lexicon_returns_two_nonempty_lowercase_frozensets(tmp_path):
@@ -30,3 +31,16 @@ def test_repo_lexicon_is_small_disjoint_and_policy_stance():
     assert banned.isdisjoint(hawk | dove)
     # polarity-stable adjective chosen over flip-prone noun stem
     assert "accommodative" in dove and "accommodat" not in dove
+
+
+def test_tokenize_lowercases_and_strips_punctuation():
+    assert tokenize("The Committee will TIGHTEN, gradually.") == \
+        ["the", "committee", "will", "tighten", "gradually"]
+
+
+def test_tokenize_drops_digits_and_empty():
+    assert tokenize("Rate at 5.25% — easing?") == ["rate", "at", "easing"]
+
+
+def test_tokenize_empty_returns_empty_list():
+    assert tokenize("   ") == []
