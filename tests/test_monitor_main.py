@@ -56,7 +56,7 @@ def test_run_monitor_end_to_end_builds_history_redline_and_site(tmp_path):
     assert any(s["op"] in {"replace", "insert", "delete"} for s in redline["segments"])
 
     assert cfg.site_out.exists()
-    assert "descriptive monitor" in cfg.site_out.read_text(encoding="utf-8").lower()
+    assert "descriptive tracker" in cfg.site_out.read_text(encoding="utf-8").lower()
 
 
 def test_rebuild_only_does_not_fetch(tmp_path):
