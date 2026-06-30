@@ -44,3 +44,38 @@ def test_tokenize_drops_digits_and_empty():
 
 def test_tokenize_empty_returns_empty_list():
     assert tokenize("   ") == []
+
+
+# append to tests/test_lexicon_scorer.py
+from cbp.models.lexicon_scorer import score_statement_lexicon
+
+HAWK = frozenset({"tighten", "restrictive"})
+DOVE = frozenset({"accommodative", "easing"})
+
+
+def test_net_tone_all_hawk_is_plus_one():
+    assert score_statement_lexicon("tighten restrictive tightening", HAWK, DOVE) == 1.0
+
+
+def test_net_tone_all_dove_is_minus_one():
+    assert score_statement_lexicon("accommodative easing", HAWK, DOVE) == -1.0
+
+
+def test_net_tone_balanced_is_zero():
+    # 2 hawk (tighten, restrictive), 2 dove (accommodative, easing)
+    assert score_statement_lexicon("tighten restrictive accommodative easing", HAWK, DOVE) == 0.0
+
+
+def test_net_tone_no_keywords_is_zero_not_nan():
+    assert score_statement_lexicon("the committee met today", HAWK, DOVE) == 0.0
+
+
+def test_stem_prefix_matches_inflection():
+    # "tightened" must match stem "tighten"
+    assert score_statement_lexicon("tightened", HAWK, DOVE) == 1.0
+
+
+def test_polarity_stable_adjective_not_flip_prone_noun():
+    # "accommodative" stem must NOT match the flip-prone noun "accommodation"
+    # ("removing accommodation" is hawkish) -> 0.0, not -1.0
+    assert score_statement_lexicon("accommodation", HAWK, DOVE) == 0.0
