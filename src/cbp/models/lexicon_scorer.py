@@ -6,6 +6,8 @@ import logging
 import re
 from pathlib import Path
 
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 _WORD = re.compile(r"[a-z]+")
@@ -30,9 +32,6 @@ def score_statement_lexicon(text: str, hawk: frozenset[str], dove: frozenset[str
     d = _count_side(tokens, dove)
     total = h + d
     return 0.0 if total == 0 else (h - d) / total
-
-
-import pandas as pd
 
 
 def score_statements_lexicon(

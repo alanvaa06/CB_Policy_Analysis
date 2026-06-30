@@ -1,9 +1,13 @@
 # tests/test_lexicon_scorer.py
 import json
+import logging
 import pytest
+import pandas as pd
 from pathlib import Path
 from cbp.models.lexicon_scorer import load_lexicon
 from cbp.models.lexicon_scorer import tokenize
+from cbp.models.lexicon_scorer import score_statement_lexicon
+from cbp.models.lexicon_scorer import score_statements_lexicon
 
 
 def test_load_lexicon_returns_two_nonempty_lowercase_frozensets(tmp_path):
@@ -46,9 +50,6 @@ def test_tokenize_empty_returns_empty_list():
     assert tokenize("   ") == []
 
 
-# append to tests/test_lexicon_scorer.py
-from cbp.models.lexicon_scorer import score_statement_lexicon
-
 HAWK = frozenset({"tighten", "restrictive"})
 DOVE = frozenset({"accommodative", "easing"})
 
@@ -81,11 +82,6 @@ def test_polarity_stable_adjective_not_flip_prone_noun():
     assert score_statement_lexicon("accommodation", HAWK, DOVE) == 0.0
 
 
-# append to tests/test_lexicon_scorer.py
-import pandas as pd
-from cbp.models.lexicon_scorer import score_statements_lexicon
-
-
 def test_score_statements_lexicon_shape_and_values():
     statements = pd.DataFrame({
         "date": pd.to_datetime(["2020-01-29", "2020-03-15"]),
@@ -100,6 +96,8 @@ def test_score_statements_lexicon_shape_and_values():
 
 def test_score_statements_lexicon_empty_text_scores_zero(caplog):
     statements = pd.DataFrame({"date": pd.to_datetime(["2020-01-29"]), "text": ["   "]})
-    out = score_statements_lexicon(statements, HAWK, DOVE)
+    with caplog.at_level(logging.INFO):
+        out = score_statements_lexicon(statements, HAWK, DOVE)
     assert len(out) == 1               # not dropped: empty text is a valid 0.0 reading
     assert out.loc[0, "stance"] == 0.0
+    assert "scored neutral 0.0" in caplog.text
