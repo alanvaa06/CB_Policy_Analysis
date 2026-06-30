@@ -8,6 +8,7 @@ dependencies = ["pandas>=2.0", "numpy>=1.26", "scipy>=1.11", "statsmodels>=0.14"
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "hypothesis>=6.0"]
 infer = ["torch>=2.2", "transformers>=4.40", "huggingface_hub>=0.23"]
+viz = ["matplotlib>=3.7"]
 
 [project.scripts]
 cbp-harness = "cbp.cli:main"
