@@ -89,7 +89,7 @@ def run_monitor(
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(prog="python -m cbp.monitor",
-                                 description="FOMC statement monitor → static dashboard")
+                                 description="FOMC statement monitor -> static dashboard")
     ap.add_argument("--date", help="process a single statement date YYYY-MM-DD (else all pending)")
     ap.add_argument("--no-roberta", action="store_true", help="torch-free run; roberta_stance=NaN")
     ap.add_argument("--rebuild-only", action="store_true",
