@@ -32,6 +32,29 @@ def score_statement_lexicon(text: str, hawk: frozenset[str], dove: frozenset[str
     return 0.0 if total == 0 else (h - d) / total
 
 
+import pandas as pd
+
+
+def score_statements_lexicon(
+    statements: pd.DataFrame, hawk: frozenset[str], dove: frozenset[str]
+) -> pd.DataFrame:
+    """Score each statement's document-level net tone. Mirrors the output of
+    `models.stance_scorer.score_statements`: columns [date, stance], one row per
+    statement. Unlike the RoBERTa path, empty/keyword-less text is kept as a
+    valid 0.0 (neutral) reading and logged, not skipped."""
+    rows = []
+    n_zero = 0
+    for _, r in statements.iterrows():
+        stance = score_statement_lexicon(r["text"], hawk, dove)
+        if stance == 0.0:
+            n_zero += 1
+        rows.append({"date": r["date"], "stance": stance})
+    if n_zero:
+        logger.info("lexicon: %d/%d statements scored neutral 0.0 (no directional words)",
+                    n_zero, len(statements))
+    return pd.DataFrame(rows, columns=["date", "stance"])
+
+
 def load_lexicon(path: Path) -> tuple[frozenset[str], frozenset[str]]:
     """Load the hawkish/dovish stem lists from a JSON file.
 

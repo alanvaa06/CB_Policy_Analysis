@@ -79,3 +79,27 @@ def test_polarity_stable_adjective_not_flip_prone_noun():
     # "accommodative" stem must NOT match the flip-prone noun "accommodation"
     # ("removing accommodation" is hawkish) -> 0.0, not -1.0
     assert score_statement_lexicon("accommodation", HAWK, DOVE) == 0.0
+
+
+# append to tests/test_lexicon_scorer.py
+import pandas as pd
+from cbp.models.lexicon_scorer import score_statements_lexicon
+
+
+def test_score_statements_lexicon_shape_and_values():
+    statements = pd.DataFrame({
+        "date": pd.to_datetime(["2020-01-29", "2020-03-15"]),
+        "text": ["tighten restrictive", "accommodative easing"],
+    })
+    out = score_statements_lexicon(statements, HAWK, DOVE)
+    assert list(out.columns) == ["date", "stance"]
+    assert len(out) == 2
+    assert out.loc[0, "stance"] == 1.0
+    assert out.loc[1, "stance"] == -1.0
+
+
+def test_score_statements_lexicon_empty_text_scores_zero(caplog):
+    statements = pd.DataFrame({"date": pd.to_datetime(["2020-01-29"]), "text": ["   "]})
+    out = score_statements_lexicon(statements, HAWK, DOVE)
+    assert len(out) == 1               # not dropped: empty text is a valid 0.0 reading
+    assert out.loc[0, "stance"] == 0.0
