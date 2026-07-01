@@ -38,3 +38,36 @@ def test_redline_detects_equal_insert_delete_replace():
     # a pure deletion case
     segs2 = redline("A sentence. B sentence.", "A sentence.")
     assert any(s["op"] == "delete" and "B sentence" in s["prev"] for s in segs2)
+
+
+def test_redline_is_word_level_and_strips_boilerplate():
+    prev = ("For release at 2:00 p.m. EDT Share The Committee will hold rates steady. "
+            "Voting for the monetary policy action were members.")
+    curr = ("For release at 2:00 p.m. EDT Share The Committee will raise rates steady. "
+            "Voting for the monetary policy action were members.")
+    segs = redline(prev, curr)
+    # boilerplate removed -> not present in any segment
+    joined = " ".join(s["prev"] + s["curr"] for s in segs)
+    assert "Voting for" not in joined and "EDT" not in joined
+    # exactly the single word hold->raise shows as a replace; the rest equal
+    reps = [s for s in segs if s["op"] == "replace"]
+    assert len(reps) == 1
+    assert "hold" in reps[0]["prev"] and "raise" in reps[0]["curr"]
+
+
+def test_redline_near_identical_is_mostly_equal():
+    prev = "The Committee decided to maintain the target range at current levels."
+    curr = "The Committee decided to maintain the target range at current levels today."
+    segs = redline(prev, curr)
+    assert any(s["op"] == "equal" for s in segs)
+    assert any(s["op"] == "insert" and "today" in s["curr"] for s in segs)
+
+
+def test_redline_smart_join_renders_natural_punctuation():
+    # identical text -> a single equal segment, smart-joined to natural prose
+    s = "The Committee will maintain rates, in support of the Reserve's dual mandate."
+    seg = redline(s, s)[0]
+    text = seg["curr"]
+    assert " ," not in text and " ." not in text          # no spaced-out punctuation
+    assert "rates," in text and "mandate." in text
+    assert "Reserve's" in text                              # apostrophe-possessive kept tight

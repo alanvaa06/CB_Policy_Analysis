@@ -10,7 +10,7 @@ rates that the rate decision itself doesn't?* So far, rigorously, the answer is 
 and the value is a trustworthy apparatus that can prove it (and catch the confounds that
 make weaker analyses say "yes").
 
-**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (104 tests). Research-grade, not a trading signal.
+**Stack:** Python ≥3.11 · pandas/statsmodels · pytest (128 tests). Research-grade, not a trading signal.
 
 ## Findings so far
 
@@ -73,20 +73,28 @@ python scripts/plot_tone_timeseries.py       # lexicon vs RoBERTa tone over time
 python scripts/plot_verdict_figures.py       # the 5-figure verdict pack -> docs/results/figures/
 python -m cbp.monitor --rebuild-only         # rebuild the descriptive dashboard (see "Statement monitor" below)
 
-pytest                                        # 104 tests
+pytest                                        # 128 tests
 ```
 
-### Statement monitor → dashboard (descriptive, not predictive)
+### FOMC Statement Tracker (live dashboard)
+
+**Live:** https://alanvaa06.github.io/CB_Policy_Analysis/
+
+A transparent, reproducible reader for every FOMC statement. Each meeting it shows:
+
+- **What changed** — a word-level redline of the latest statement vs the prior one (boilerplate stripped).
+- **What the Fed is focused on** — theme intensity over time (inflation, employment, growth, balance sheet, financial conditions).
+- **How much it changed** — the edit-distance of each statement vs the one before, so pivotal meetings stand out.
+- **Communication style** — statement length, readability, and uncertainty-word density across 1999→today.
+- **Stance, in context** — the transparent action/lexicon measures (RoBERTa optional), with an on-page glossary.
 
 ```bash
-python -m cbp.monitor                 # score new statements + rebuild dashboard (needs .[infer,site])
-python -m cbp.monitor --no-roberta    # torch-free fast run (RoBERTa column gapped)
-python -m cbp.monitor --rebuild-only  # re-render HTML from committed CSV (the CI path; .[site] only)
+python -m cbp.monitor                 # score new statements + rebuild dashboard (.[site]; add .[infer] for RoBERTa)
+python -m cbp.monitor --no-roberta    # torch-free run
+python -m cbp.monitor --rebuild-only  # re-render from committed data (the CI path; .[site] only)
 ```
 
-Each run upserts `data/monitor/tone_history.csv` + `data/monitor/latest_redline.json` (commit both);
-CI (`.github/workflows/pages.yml`) re-renders and publishes to the `gh-pages` branch. Extend the
-meeting list yearly in `data/monitor/fomc_calendar.csv` (`scripts/seed_calendar.py`).
+Each run upserts `data/monitor/tone_history.csv` + `latest_redline.json` (commit both); CI (`.github/workflows/pages.yml`) re-renders torch-free and publishes to `gh-pages`. Extend the meeting list yearly in `data/monitor/fomc_calendar.csv`.
 
 ## Method notes
 

@@ -2,12 +2,37 @@
 from __future__ import annotations
 
 import difflib
+import re
 
 import pandas as pd
 
-from cbp.models.stance_scorer import split_sentences
+from cbp.monitor.metrics import clean_statement
+
+_WORDS = re.compile(r"\w+|[^\w\s]")
+_TIGHT_BEFORE = set(".,;:%!?)]}")   # no space before these tokens
+_TIGHT_AFTER = set("([{$")          # no space after these tokens
 
 MEASURES = ["action", "lexicon_tone", "roberta_stance"]
+
+
+def _smart_join(tokens: list[str]) -> str:
+    """Join word/punctuation tokens back into natural prose: no space before closing
+    punctuation, after opening punctuation, or around apostrophes (`'s`), hyphens, and
+    slashes (so `3 - 1 / 2` → `3-1/2`, `Reserve ' s` → `Reserve's`)."""
+    out: list[str] = []
+    for i, t in enumerate(tokens):
+        if i == 0:
+            out.append(t)
+            continue
+        prev = tokens[i - 1]
+        tight = (
+            t[:1] in _TIGHT_BEFORE
+            or prev[-1:] in _TIGHT_AFTER
+            or t in ("'", "-", "/")
+            or prev in ("'", "-", "/")
+        )
+        out.append(t if tight else " " + t)
+    return "".join(out)
 
 
 def _num(v):
@@ -36,16 +61,19 @@ def tone_deltas(history: pd.DataFrame) -> dict:
 
 
 def redline(prev_text: str, curr_text: str) -> list[dict]:
-    """Sentence-level track-changes diff of two statements.
+    """Word-level track-changes diff of two statements, over boilerplate-stripped text.
 
-    Splits both with the shared `split_sentences`, runs difflib over the sentence
-    lists, and emits ordered segments {op, prev, curr} with
-    op in {equal, insert, delete, replace}. Textual, not semantic (see PRD §11)."""
-    a, b = split_sentences(prev_text), split_sentences(curr_text)
+    Cleans both with clean_statement, tokenizes to word/punctuation tokens (punctuation
+    diffs separately for precise change spans), runs difflib, and emits ordered segments
+    {op, prev, curr} with op in {equal, insert, delete, replace}. Segment text is
+    re-joined with `_smart_join` so it reads as natural prose (no spaced-out punctuation),
+    with only the changed words highlighted. Textual, not semantic."""
+    a = _WORDS.findall(clean_statement(prev_text))
+    b = _WORDS.findall(clean_statement(curr_text))
     segments: list[dict] = []
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
-        prev = " ".join(a[i1:i2])
-        curr = " ".join(b[j1:j2])
+        prev = _smart_join(a[i1:i2])
+        curr = _smart_join(b[j1:j2])
         if op == "insert":
             prev = ""
         elif op == "delete":

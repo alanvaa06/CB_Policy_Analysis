@@ -4,18 +4,173 @@
  "segments": [
   {
    "op": "replace",
-   "prev": "April 29, 2026\nFor release at 2:00 p.m. EDT Share\nRecent indicators suggest that economic activity has been expanding at a solid pace. Job gains have remained low, on average, and the unemployment rate has been little changed in recent months. Inflation is elevated, in part reflecting the recent increase in global energy prices. The Committee seeks to achieve maximum employment and inflation at the rate of 2 percent over the longer run. Developments in the Middle East are contributing to a high level of uncertainty about the economic outlook. The Committee is attentive to the risks to both sides of its dual mandate. In support of its goals, the Committee decided to maintain the target range for the federal funds rate at 3\u00e2\u0080\u00911/2 to 3\u00e2\u0080\u00913/4 percent. In considering the extent and timing of additional adjustments to the target range for the federal funds rate, the Committee will carefully assess incoming data, the evolving outlook, and the balance of risks. The Committee is strongly committed to supporting maximum employment and returning inflation to its 2 percent objective. In assessing the appropriate stance of monetary policy, the Committee will continue to monitor the implications of incoming information for the economic outlook. The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge that could impede the attainment of the Committee's goals. The Committee's assessments will take into account a wide range of information, including readings on labor market conditions, inflation pressures and inflation expectations, and financial and international developments. Voting for the monetary policy action were Jerome H. Powell, Chair; John C. Williams, Vice Chair; Michael S. Barr; Michelle W. Bowman; Lisa D. Cook; Philip N. Jefferson; Anna Paulson; and Christopher J. Waller. Voting against this action were Stephen I. Miran, who preferred to lower the target range for the federal funds rate by 1/4 percentage point at this meeting; and Beth M. Hammack, Neel Kashkari, and Lorie K. Logan, who supported maintaining the target range for the federal funds rate but did not support inclusion of an easing bias in the statement at this time.",
-   "curr": "June 17, 2026\nFor release at 2:00 p.m. EDT Share\nThe Federal Open Market Committee approved the following statement for release by a 12 \u00e2\u0080\u0093 0 vote:\nThe Committee decided to maintain the target range for the federal funds rate at 3-1/2 to 3-3/4 percent, in support of the Federal Reserve's dual mandate. The Committee reaffirmed its policy of maintaining ample reserves in the banking system. Economic activity is expanding at a solid pace despite elevated uncertainty that owes, in part, to the conflict in the Middle East. Productivity growth and capital investment are strong. Job gains have kept pace with the workforce, and the unemployment rate has changed little. Inflation remains elevated relative to the Committee's 2 percent goal, in part reflecting supply shocks that have driven price increases in certain sectors, including energy. The Committee will deliver price stability."
+   "prev": "Recent indicators suggest that economic activity has been expanding at",
+   "curr": "The Federal Open Market Committee approved the following statement for release by"
   },
   {
    "op": "equal",
-   "prev": "For media inquiries, please email [email\u00a0protected] or call 202-452-2955.",
-   "curr": "For media inquiries, please email [email\u00a0protected] or call 202-452-2955."
+   "prev": "a",
+   "curr": "a"
   },
   {
    "op": "replace",
-   "prev": "Implementation Note issued April 29, 2026",
-   "curr": "Implementation Note issued June 17, 2026"
+   "prev": "solid pace. Job gains have remained low, on average, and the unemployment rate has been little changed in recent months. Inflation is elevated, in part reflecting the recent increase in global energy prices.",
+   "curr": "12 \u2013 0 vote:"
+  },
+  {
+   "op": "equal",
+   "prev": "The",
+   "curr": "The"
+  },
+  {
+   "op": "delete",
+   "prev": "Committee seeks to achieve maximum employment and inflation at the rate of 2 percent over the longer run. Developments in the Middle East are contributing to a high level of uncertainty about the economic outlook. The Committee is attentive to the risks to both sides of its dual mandate. In support of its goals, the",
+   "curr": ""
+  },
+  {
+   "op": "equal",
+   "prev": "Committee decided to maintain the target range for the federal funds rate at 3",
+   "curr": "Committee decided to maintain the target range for the federal funds rate at 3"
+  },
+  {
+   "op": "replace",
+   "prev": "\u2011",
+   "curr": "-"
+  },
+  {
+   "op": "equal",
+   "prev": "1/2 to 3",
+   "curr": "1/2 to 3"
+  },
+  {
+   "op": "replace",
+   "prev": "\u2011",
+   "curr": "-"
+  },
+  {
+   "op": "equal",
+   "prev": "3/4 percent",
+   "curr": "3/4 percent"
+  },
+  {
+   "op": "insert",
+   "prev": "",
+   "curr": ", in support of the Federal Reserve's dual mandate"
+  },
+  {
+   "op": "equal",
+   "prev": ".",
+   "curr": "."
+  },
+  {
+   "op": "replace",
+   "prev": "In considering",
+   "curr": "The Committee reaffirmed its policy of maintaining ample reserves in"
+  },
+  {
+   "op": "equal",
+   "prev": "the",
+   "curr": "the"
+  },
+  {
+   "op": "replace",
+   "prev": "extent and timing of additional adjustments",
+   "curr": "banking system. Economic activity is expanding at a solid pace despite elevated uncertainty that owes, in part,"
+  },
+  {
+   "op": "equal",
+   "prev": "to the",
+   "curr": "to the"
+  },
+  {
+   "op": "replace",
+   "prev": "target range for",
+   "curr": "conflict in"
+  },
+  {
+   "op": "equal",
+   "prev": "the",
+   "curr": "the"
+  },
+  {
+   "op": "replace",
+   "prev": "federal funds rate,",
+   "curr": "Middle East. Productivity growth and capital investment are strong. Job gains have kept pace with"
+  },
+  {
+   "op": "equal",
+   "prev": "the",
+   "curr": "the"
+  },
+  {
+   "op": "replace",
+   "prev": "Committee will carefully assess incoming data, the evolving outlook",
+   "curr": "workforce"
+  },
+  {
+   "op": "equal",
+   "prev": ", and the",
+   "curr": ", and the"
+  },
+  {
+   "op": "replace",
+   "prev": "balance of risks",
+   "curr": "unemployment rate has changed little"
+  },
+  {
+   "op": "equal",
+   "prev": ".",
+   "curr": "."
+  },
+  {
+   "op": "replace",
+   "prev": "The Committee is strongly committed",
+   "curr": "Inflation remains elevated relative"
+  },
+  {
+   "op": "equal",
+   "prev": "to",
+   "curr": "to"
+  },
+  {
+   "op": "delete",
+   "prev": "supporting maximum employment and returning inflation to its 2 percent objective. In assessing the appropriate stance of monetary policy, the Committee will continue to monitor the implications of incoming information for the economic outlook. The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge that could impede the attainment of",
+   "curr": ""
+  },
+  {
+   "op": "equal",
+   "prev": "the Committee's",
+   "curr": "the Committee's"
+  },
+  {
+   "op": "replace",
+   "prev": "goals",
+   "curr": "2 percent goal, in part reflecting supply shocks that have driven price increases in certain sectors, including energy"
+  },
+  {
+   "op": "equal",
+   "prev": ". The Committee",
+   "curr": ". The Committee"
+  },
+  {
+   "op": "delete",
+   "prev": "'s assessments",
+   "curr": ""
+  },
+  {
+   "op": "equal",
+   "prev": "will",
+   "curr": "will"
+  },
+  {
+   "op": "replace",
+   "prev": "take into account a wide range of information, including readings on labor market conditions, inflation pressures and inflation expectations, and financial and international developments",
+   "curr": "deliver price stability"
+  },
+  {
+   "op": "equal",
+   "prev": ".",
+   "curr": "."
   }
  ]
 }

@@ -38,6 +38,7 @@ def _cfg(tmp_path) -> Config:
         statements_dir=tmp_path / "statements",
         site_out=tmp_path / "site" / "index.html",
         lexicon_dir=__import__("pathlib").Path("data/lexicons"),
+        themes_path=__import__("pathlib").Path("data/lexicons/themes.json"),
     )
 
 
@@ -55,7 +56,7 @@ def test_run_monitor_end_to_end_builds_history_redline_and_site(tmp_path):
     assert any(s["op"] in {"replace", "insert", "delete"} for s in redline["segments"])
 
     assert cfg.site_out.exists()
-    assert "descriptive monitor" in cfg.site_out.read_text(encoding="utf-8").lower()
+    assert "descriptive tracker" in cfg.site_out.read_text(encoding="utf-8").lower()
 
 
 def test_rebuild_only_does_not_fetch(tmp_path):
@@ -69,3 +70,14 @@ def test_rebuild_only_does_not_fetch(tmp_path):
         raise AssertionError("rebuild-only must not fetch")
     m.run_monitor(cfg, rebuild_only=True, get_html=_boom)
     assert cfg.site_out.exists()
+
+
+def test_run_monitor_populates_metric_columns(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    hist = load_history(cfg.history_path)
+    for c in ["word_count", "flesch", "theme_inflation", "uncertainty_per1k"]:
+        assert hist[c].notna().any()
+    # second statement gets a change_magnitude vs the first
+    assert hist["change_magnitude"].notna().any()
