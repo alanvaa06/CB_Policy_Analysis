@@ -136,3 +136,6 @@ def test_build_redlines_payload_shape():
     entry = payload["2024-05-01"]
     assert "deltas" in entry["deltas_html"].lower()      # <table class='deltas'>
     assert "rl-insert" in entry["redline_html"]          # rendered redline
+    # date present in segments but absent from deltas -> empty-state, not a raise
+    payload_missing = build_redlines_payload({}, segs_by_date)
+    assert "rl-empty" in payload_missing["2024-05-01"]["deltas_html"]

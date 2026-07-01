@@ -148,8 +148,10 @@ def _deltas_table_html(deltas: dict) -> str:
 
 def build_redlines_payload(deltas_by_date: dict, segments_by_date: dict) -> dict:
     """For every date present in `segments_by_date`, pre-render both panels.
-    Returns {date: {"deltas_html": ..., "redline_html": ...}} — the toggle payload
-    served as site/redlines.json. Both renderers stay the single source of truth."""
+    `deltas_by_date` maps date string -> an all_pair_deltas() entry; a date absent
+    from it renders the empty-state deltas table. Returns
+    {date: {"deltas_html": ..., "redline_html": ...}} — the toggle payload served as
+    site/redlines.json. Both renderers stay the single source of truth."""
     payload = {}
     for date, segments in segments_by_date.items():
         payload[date] = {
