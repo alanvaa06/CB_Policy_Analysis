@@ -10,6 +10,11 @@
 
 **Design refinement vs spec:** deltas are shipped as pre-rendered HTML *inside* `redlines.json` (not inlined in the page) to keep `index.html` small and avoid inline git churn. Same approved architecture: separate JSON fetched on demand, pre-rendered HTML as single source of truth.
 
+> **Corrections applied during execution (see final commits):**
+> 1. **Deploy path.** `/site/` is gitignored and CI runs `--rebuild-only` (no raw texts), so the payload could not live at a committed `site/redlines.json`. Shipped instead at **`data/monitor/redlines.json`** (committed, like `latest_redline.json`), which `run_monitor` **copies into `./site` after render** (both full and rebuild-only). `Config.redlines_path = data/monitor/redlines.json`; added to `pages.yml` trigger paths. Everywhere Task 4 / Task 5 below say `site/redlines.json`, the committed source is `data/monitor/redlines.json`.
+> 2. **Regeneration gating.** `_write_all_redlines` was moved OUT of the "new statements fetched" branch to run on **every non-rebuild run**, so the artifact bootstraps/refreshes even when there are no pending meetings.
+> 3. **Fetch hardening.** `_loadPayload` wraps `fetch` in try/catch and `_onSelect` guards `map && map[date]`, so a missing/404 payload degrades gracefully (marker still moves).
+
 ---
 
 ## File structure

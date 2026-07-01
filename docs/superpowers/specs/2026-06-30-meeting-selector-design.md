@@ -1,7 +1,19 @@
 # Design — meeting selector for the FOMC statement tracker
 
 **Date:** 2026-06-30
-**Status:** approved (design), pending implementation plan
+**Status:** implemented (branch `feat/meeting-selector`)
+
+> **Correction (2026-07-01, discovered during implementation).** This spec below
+> says the payload is committed to `site/redlines.json`. That is WRONG for this repo:
+> `/site/` is gitignored and CI (`.github/workflows/pages.yml`) publishes via
+> `python -m cbp.monitor --rebuild-only` (torch-free, **no raw statement texts**), so
+> `site/redlines.json` can neither be committed nor regenerated in CI. **What shipped:**
+> the payload lives at `data/monitor/redlines.json` (committed, following the
+> `latest_redline.json` pattern) and `run_monitor` **copies it into `./site` after
+> render** (both full and `--rebuild-only` runs) so gh-pages serves it. `Config.redlines_path`
+> defaults to `data/monitor/redlines.json`; `data/monitor/redlines.json` is added to the
+> pages.yml trigger paths. Read "`site/redlines.json` (committed)" below as
+> "`data/monitor/redlines.json` (committed), published into `./site` at build."
 
 ## Problem
 
