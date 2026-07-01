@@ -39,6 +39,19 @@ def _num(v):
     return None if pd.isna(v) else float(v)
 
 
+def _pair_deltas(prior: pd.Series, latest: pd.Series) -> dict:
+    """Change per measure between two history rows (prior -> latest)."""
+    out = {
+        "date_prior": pd.Timestamp(prior["date"]).strftime("%Y-%m-%d"),
+        "date_latest": pd.Timestamp(latest["date"]).strftime("%Y-%m-%d"),
+    }
+    for m in MEASURES:
+        p, l = _num(prior[m]), _num(latest[m])
+        out[m] = {"prior": p, "latest": l,
+                  "delta": (None if p is None or l is None else l - p)}
+    return out
+
+
 def tone_deltas(history: pd.DataFrame) -> dict:
     """Latest-vs-prior change per measure, from the last two history rows.
 
@@ -48,15 +61,18 @@ def tone_deltas(history: pd.DataFrame) -> dict:
     `delta` is None when either side is NaN (e.g. a --no-roberta gap)."""
     if len(history) < 2:
         return {}
-    prior, latest = history.iloc[-2], history.iloc[-1]
-    out = {
-        "date_prior": pd.Timestamp(prior["date"]).strftime("%Y-%m-%d"),
-        "date_latest": pd.Timestamp(latest["date"]).strftime("%Y-%m-%d"),
-    }
-    for m in MEASURES:
-        p, l = _num(prior[m]), _num(latest[m])
-        out[m] = {"prior": p, "latest": l,
-                  "delta": (None if p is None or l is None else l - p)}
+    return _pair_deltas(history.iloc[-2], history.iloc[-1])
+
+
+def all_pair_deltas(history: pd.DataFrame) -> dict:
+    """`_pair_deltas` for every consecutive pair, keyed by the latest date string.
+    {} when fewer than two rows."""
+    if len(history) < 2:
+        return {}
+    out = {}
+    for i in range(1, len(history)):
+        d = _pair_deltas(history.iloc[i - 1], history.iloc[i])
+        out[d["date_latest"]] = d
     return out
 
 
