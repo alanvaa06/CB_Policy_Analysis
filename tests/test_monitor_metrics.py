@@ -94,3 +94,10 @@ def test_change_magnitude_bounds():
     mid = change_magnitude("the committee will hold rates steady",
                            "the committee will raise rates sharply")
     assert 0.0 < mid < 1.0
+
+
+def test_clean_statement_repairs_mojibake():
+    # en-dash bytes E2 80 93 mis-decoded as Latin-1 -> U+00E2 U+0080 U+0093
+    fixed = clean_statement("approved by a 12 â 0 vote")
+    assert "–" in fixed                    # proper en dash restored
+    assert "â" not in fixed                 # mojibake marker gone

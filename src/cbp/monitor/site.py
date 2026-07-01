@@ -73,23 +73,44 @@ def build_commstyle_figure(history: pd.DataFrame):
     return fig
 
 
+_TIGHT_BEFORE = ".,;:%!?)]}"   # no space before a fragment starting with these
+_TIGHT_AFTER = "([{$-/'"        # no space after a fragment ending with these
+
+
+def _sep(prev_text: str, next_text: str) -> str:
+    """Space between two redline fragments unless punctuation/fraction/possessive
+    makes it tight (so `percent ,` -> `percent,`, `3-` + `1/2` -> `3-1/2`)."""
+    if not prev_text:
+        return ""
+    a, b = prev_text[-1], next_text[:1]
+    return "" if (b in _TIGHT_BEFORE or a in _TIGHT_AFTER) else " "
+
+
 def build_redline_html(segments: list[dict]) -> str:
-    """Inline word-level redline: one flowing paragraph, only changes highlighted."""
+    """Inline word-level redline: one flowing paragraph, only changes highlighted.
+    Fragments are joined with punctuation-aware spacing so the prose reads naturally
+    even where a change boundary lands on punctuation."""
     if not segments:
         return '<p class="rl-empty">Need ≥2 statements to show a redline.</p>'
-    parts = []
+    units: list[tuple[str, str]] = []  # (css_class, visible_text)
     for s in segments:
         op = s["op"]
         if op == "equal":
-            parts.append(f'<span class="rl-equal">{_html.escape(s["curr"])}</span>')
+            units.append(("rl-equal", s["curr"]))
         elif op == "insert":
-            parts.append(f'<span class="rl-insert">{_html.escape(s["curr"])}</span>')
+            units.append(("rl-insert", s["curr"]))
         elif op == "delete":
-            parts.append(f'<span class="rl-delete">{_html.escape(s["prev"])}</span>')
-        else:  # replace
-            parts.append(f'<span class="rl-delete">{_html.escape(s["prev"])}</span> '
-                         f'<span class="rl-insert">{_html.escape(s["curr"])}</span>')
-    return '<div class="redline-flow">' + " ".join(parts) + "</div>"
+            units.append(("rl-delete", s["prev"]))
+        else:  # replace -> struck old then new
+            units.append(("rl-delete", s["prev"]))
+            units.append(("rl-insert", s["curr"]))
+    out, last = [], ""
+    for cls, text in units:
+        if not text:
+            continue
+        out.append(f'{_sep(last, text)}<span class="{cls}">{_html.escape(text)}</span>')
+        last = text
+    return '<div class="redline-flow">' + "".join(out) + "</div>"
 
 
 def glossary_html() -> str:

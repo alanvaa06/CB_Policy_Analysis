@@ -99,6 +99,15 @@ def test_redline_html_is_inline_flow():
     assert "rl-delete" in html and "rl-insert" in html
 
 
+def test_redline_html_tightens_punctuation_across_segments():
+    import re
+    segs = [{"op": "equal", "prev": "percent", "curr": "percent"},
+            {"op": "insert", "prev": "", "curr": ","},
+            {"op": "equal", "prev": "in support", "curr": "in support"}]
+    text = re.sub(r"<[^>]+>", "", build_redline_html(segs))
+    assert "percent," in text and "percent ," not in text
+
+
 def test_render_site_has_six_sections(tmp_path):
     out = tmp_path / "index.html"
     deltas = {"date_prior": "2024-03-20", "date_latest": "2024-05-01",

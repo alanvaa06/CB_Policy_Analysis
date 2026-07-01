@@ -15,7 +15,24 @@ _MEDIA = re.compile(r"\bFor media inquiries\b.*", re.IGNORECASE | re.DOTALL)
 _IMPL = re.compile(r"\bImplementation Note issued\b.*", re.IGNORECASE | re.DOTALL)
 _RELEASE_HDR = re.compile(r"^.*?\b(?:EDT|EST)\b\s*(?:Share\s+)?", re.IGNORECASE | re.DOTALL)
 _VOWELS = re.compile(r"[aeiouy]+")
-_WORDS = re.compile(r"\S+")
+
+# UTF-8 bytes mis-decoded as Latin-1 (mojibake) surface as a lead char U+00C2–U+00F4
+# followed by continuation chars U+0080–U+00BF, e.g. the en-dash E2 80 93 -> "â\x80\x93".
+# We repair each such run independently (per-match), so a genuine non-Latin-1 character
+# elsewhere in the text cannot defeat the whole repair.
+_MOJIBAKE_SEQ = re.compile("[Â-ô][-¿]+")
+
+
+def _fix_mojibake(text: str) -> str:
+    """Repair UTF-8-decoded-as-Latin-1 mojibake runs by re-encoding each matched run to
+    Latin-1 bytes and decoding as UTF-8. Non-mojibake text is left untouched; a run that
+    does not round-trip cleanly is kept as-is."""
+    def _repl(m: "re.Match[str]") -> str:
+        try:
+            return m.group(0).encode("latin-1").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            return m.group(0)
+    return _MOJIBAKE_SEQ.sub(_repl, text)
 
 
 def load_themes(path: Path) -> tuple[dict[str, frozenset[str]], frozenset[str]]:
@@ -35,9 +52,10 @@ def load_themes(path: Path) -> tuple[dict[str, frozenset[str]], frozenset[str]]:
 
 def clean_statement(text: str) -> str:
     """Strip clearly-identified boilerplate (release header, voting roster, media line,
-    implementation note) so metrics + the redline read the substance only. Conservative:
-    each cut is anchored on an explicit marker; historical statements without these pass
-    through. Never returns empty — falls back to the stripped raw text."""
+    implementation note) and repair mojibake so metrics + the redline read the substance
+    only. Conservative: each cut is anchored on an explicit marker; historical statements
+    without these pass through. Never returns empty — falls back to the stripped raw text."""
+    text = _fix_mojibake(text)
     s = _VOTING.sub("", text)
     s = _MEDIA.sub("", s)
     s = _IMPL.sub("", s)

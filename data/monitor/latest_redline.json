@@ -14,8 +14,8 @@
   },
   {
    "op": "replace",
-   "prev": "solid pace . Job gains have remained low , on average , and the unemployment rate has been little changed in recent months . Inflation is elevated , in part reflecting the recent increase in global energy prices .",
-   "curr": "12 \u00e2 \u0080 \u0093 0 vote :"
+   "prev": "solid pace. Job gains have remained low, on average, and the unemployment rate has been little changed in recent months. Inflation is elevated, in part reflecting the recent increase in global energy prices.",
+   "curr": "12 \u2013 0 vote:"
   },
   {
    "op": "equal",
@@ -24,38 +24,38 @@
   },
   {
    "op": "delete",
-   "prev": "Committee seeks to achieve maximum employment and inflation at the rate of 2 percent over the longer run . Developments in the Middle East are contributing to a high level of uncertainty about the economic outlook . The Committee is attentive to the risks to both sides of its dual mandate . In support of its goals , the",
+   "prev": "Committee seeks to achieve maximum employment and inflation at the rate of 2 percent over the longer run. Developments in the Middle East are contributing to a high level of uncertainty about the economic outlook. The Committee is attentive to the risks to both sides of its dual mandate. In support of its goals, the",
    "curr": ""
   },
   {
    "op": "equal",
-   "prev": "Committee decided to maintain the target range for the federal funds rate at",
-   "curr": "Committee decided to maintain the target range for the federal funds rate at"
+   "prev": "Committee decided to maintain the target range for the federal funds rate at 3",
+   "curr": "Committee decided to maintain the target range for the federal funds rate at 3"
   },
   {
    "op": "replace",
-   "prev": "3\u00e2 \u0080 \u0091",
-   "curr": "3 -"
+   "prev": "\u2011",
+   "curr": "-"
   },
   {
    "op": "equal",
-   "prev": "1 / 2 to",
-   "curr": "1 / 2 to"
+   "prev": "1/2 to 3",
+   "curr": "1/2 to 3"
   },
   {
    "op": "replace",
-   "prev": "3\u00e2 \u0080 \u0091",
-   "curr": "3 -"
+   "prev": "\u2011",
+   "curr": "-"
   },
   {
    "op": "equal",
-   "prev": "3 / 4 percent",
-   "curr": "3 / 4 percent"
+   "prev": "3/4 percent",
+   "curr": "3/4 percent"
   },
   {
    "op": "insert",
    "prev": "",
-   "curr": ", in support of the Federal Reserve ' s dual mandate"
+   "curr": ", in support of the Federal Reserve's dual mandate"
   },
   {
    "op": "equal",
@@ -75,7 +75,7 @@
   {
    "op": "replace",
    "prev": "extent and timing of additional adjustments",
-   "curr": "banking system . Economic activity is expanding at a solid pace despite elevated uncertainty that owes , in part ,"
+   "curr": "banking system. Economic activity is expanding at a solid pace despite elevated uncertainty that owes, in part,"
   },
   {
    "op": "equal",
@@ -94,8 +94,8 @@
   },
   {
    "op": "replace",
-   "prev": "federal funds rate ,",
-   "curr": "Middle East . Productivity growth and capital investment are strong . Job gains have kept pace with"
+   "prev": "federal funds rate,",
+   "curr": "Middle East. Productivity growth and capital investment are strong. Job gains have kept pace with"
   },
   {
    "op": "equal",
@@ -104,7 +104,7 @@
   },
   {
    "op": "replace",
-   "prev": "Committee will carefully assess incoming data , the evolving outlook",
+   "prev": "Committee will carefully assess incoming data, the evolving outlook",
    "curr": "workforce"
   },
   {
@@ -134,18 +134,18 @@
   },
   {
    "op": "delete",
-   "prev": "supporting maximum employment and returning inflation to its 2 percent objective . In assessing the appropriate stance of monetary policy , the Committee will continue to monitor the implications of incoming information for the economic outlook . The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge that could impede the attainment of",
+   "prev": "supporting maximum employment and returning inflation to its 2 percent objective. In assessing the appropriate stance of monetary policy, the Committee will continue to monitor the implications of incoming information for the economic outlook. The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge that could impede the attainment of",
    "curr": ""
   },
   {
    "op": "equal",
-   "prev": "the Committee ' s",
-   "curr": "the Committee ' s"
+   "prev": "the Committee's",
+   "curr": "the Committee's"
   },
   {
    "op": "replace",
    "prev": "goals",
-   "curr": "2 percent goal , in part reflecting supply shocks that have driven price increases in certain sectors , including energy"
+   "curr": "2 percent goal, in part reflecting supply shocks that have driven price increases in certain sectors, including energy"
   },
   {
    "op": "equal",
@@ -154,7 +154,7 @@
   },
   {
    "op": "delete",
-   "prev": "' s assessments",
+   "prev": "'s assessments",
    "curr": ""
   },
   {
@@ -164,7 +164,7 @@
   },
   {
    "op": "replace",
-   "prev": "take into account a wide range of information , including readings on labor market conditions , inflation pressures and inflation expectations , and financial and international developments",
+   "prev": "take into account a wide range of information, including readings on labor market conditions, inflation pressures and inflation expectations, and financial and international developments",
    "curr": "deliver price stability"
   },
   {

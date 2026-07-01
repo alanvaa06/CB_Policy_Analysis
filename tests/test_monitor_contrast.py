@@ -61,3 +61,13 @@ def test_redline_near_identical_is_mostly_equal():
     segs = redline(prev, curr)
     assert any(s["op"] == "equal" for s in segs)
     assert any(s["op"] == "insert" and "today" in s["curr"] for s in segs)
+
+
+def test_redline_smart_join_renders_natural_punctuation():
+    # identical text -> a single equal segment, smart-joined to natural prose
+    s = "The Committee will maintain rates, in support of the Reserve's dual mandate."
+    seg = redline(s, s)[0]
+    text = seg["curr"]
+    assert " ," not in text and " ." not in text          # no spaced-out punctuation
+    assert "rates," in text and "mandate." in text
+    assert "Reserve's" in text                              # apostrophe-possessive kept tight
