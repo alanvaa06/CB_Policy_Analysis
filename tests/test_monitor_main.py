@@ -35,6 +35,7 @@ def _cfg(tmp_path) -> Config:
         history_path=tmp_path / "tone_history.csv",
         calendar_path=tmp_path / "cal.csv",
         redline_path=tmp_path / "latest_redline.json",
+        redlines_path=tmp_path / "site" / "redlines.json",
         statements_dir=tmp_path / "statements",
         site_out=tmp_path / "site" / "index.html",
         lexicon_dir=__import__("pathlib").Path("data/lexicons"),
@@ -81,3 +82,27 @@ def test_run_monitor_populates_metric_columns(tmp_path):
         assert hist[c].notna().any()
     # second statement gets a change_magnitude vs the first
     assert hist["change_magnitude"].notna().any()
+
+
+def test_run_monitor_writes_all_redlines_json(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    payload = json.loads(cfg.redlines_path.read_text(encoding="utf-8"))
+    assert set(payload) == {"2024-03-20"}                 # one pair -> keyed by latest date
+    entry = payload["2024-03-20"]
+    assert entry["redline_html"] and entry["deltas_html"]
+    html = cfg.site_out.read_text(encoding="utf-8")
+    assert 'id="meeting"' in html and "redlines.json" in html
+
+
+def test_rebuild_only_reuses_committed_redlines(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    cfg.site_out.unlink()
+    def _boom(url):
+        raise AssertionError("rebuild-only must not fetch")
+    m.run_monitor(cfg, rebuild_only=True, get_html=_boom)
+    assert cfg.site_out.exists()
+    assert 'id="meeting"' in cfg.site_out.read_text(encoding="utf-8")

@@ -168,7 +168,11 @@ def _toggle_js(redlines_url: str) -> str:
 const CHART_IDS = %s;
 let _payload = null;
 async function _loadPayload(){
-  if(!_payload){ _payload = await fetch("%s").then(r => r.json()); }
+  if(_payload) return _payload;
+  try {
+    const r = await fetch("%s");
+    if(r.ok){ _payload = await r.json(); }
+  } catch(e){ /* redlines.json unavailable (file:// or not yet built) — leave null */ }
   return _payload;
 }
 function _mark(date){
@@ -181,7 +185,7 @@ function _mark(date){
 }
 async function _onSelect(date){
   const map = await _loadPayload();
-  const entry = map[date];
+  const entry = map && map[date];
   if(entry){
     document.getElementById("deltas-slot").innerHTML = entry.deltas_html;
     document.getElementById("redline-slot").innerHTML = entry.redline_html;
