@@ -96,6 +96,17 @@ def test_run_monitor_writes_all_redlines_json(tmp_path):
     assert 'id="meeting"' in html and "redlines.json" in html
 
 
+def test_full_run_writes_redlines_with_no_pending(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, get_html=_fake_get_html, roberta=_fake_roberta)   # scores both
+    cfg.redlines_path.unlink()                                           # drop the artifact
+    m.run_monitor(cfg, get_html=_fake_get_html, roberta=_fake_roberta)   # no pending dates now
+    assert cfg.redlines_path.exists()                                    # regenerated anyway
+    payload = json.loads(cfg.redlines_path.read_text(encoding="utf-8"))
+    assert set(payload) == {"2024-03-20"}
+
+
 def test_rebuild_only_reuses_committed_redlines(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")

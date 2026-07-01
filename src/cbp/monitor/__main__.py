@@ -109,9 +109,9 @@ def run_monitor(
                 history = upsert_history(history, scored)
                 save_history(history, cfg.history_path)
                 _write_latest_redline(cfg, history)
-                _write_all_redlines(cfg, history)
             else:
                 logger.warning("no statements fetched for %d pending date(s)", len(todo))
+        _write_all_redlines(cfg, history)   # every non-rebuild run keeps redlines.json in sync
 
     render_site(history, tone_deltas(history), _load_segments(cfg.redline_path),
                 cfg.site_out, verdict_url=VERDICT_URL)
