@@ -5,6 +5,7 @@ import argparse
 import datetime as dt
 import json
 import logging
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -115,6 +116,9 @@ def run_monitor(
 
     render_site(history, tone_deltas(history), _load_segments(cfg.redline_path),
                 cfg.site_out, verdict_url=VERDICT_URL)
+    # publish the committed redlines payload alongside the page for the browser to fetch
+    if Path(cfg.redlines_path).exists():
+        shutil.copyfile(cfg.redlines_path, Path(cfg.site_out).parent / "redlines.json")
     logger.info("dashboard written to %s (%d statements)", cfg.site_out, len(history))
 
 

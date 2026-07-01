@@ -19,5 +19,5 @@ class Config:
     history_path: Path = Path("data/monitor/tone_history.csv")
     calendar_path: Path = Path("data/monitor/fomc_calendar.csv")
     redline_path: Path = Path("data/monitor/latest_redline.json")
-    redlines_path: Path = Path("site/redlines.json")
+    redlines_path: Path = Path("data/monitor/redlines.json")
     site_out: Path = Path("site/index.html")

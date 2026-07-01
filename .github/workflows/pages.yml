@@ -5,6 +5,7 @@ on:
     paths:
       - "data/monitor/tone_history.csv"
       - "data/monitor/latest_redline.json"
+      - "data/monitor/redlines.json"
       - "src/cbp/monitor/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch: {}
