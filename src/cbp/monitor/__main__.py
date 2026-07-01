@@ -5,6 +5,7 @@ import argparse
 import datetime as dt
 import json
 import logging
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -13,10 +14,10 @@ from cbp.config import Config
 from cbp.data.fomc_statements import fetch_statements
 from cbp.models.stance_scorer import StanceClassifier
 from cbp.monitor.calendar import load_calendar, pending_dates
-from cbp.monitor.contrast import redline, tone_deltas
+from cbp.monitor.contrast import all_pair_deltas, redline, tone_deltas
 from cbp.monitor.history import load_history, save_history, upsert_history
 from cbp.monitor.score import score_all_measures
-from cbp.monitor.site import VERDICT_URL, render_site
+from cbp.monitor.site import VERDICT_URL, build_redlines_payload, render_site
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,32 @@ def _write_latest_redline(cfg: Config, history: pd.DataFrame) -> None:
                    "segments": redline(tmap[last2[0]], tmap[last2[1]])}
         Path(cfg.redline_path).parent.mkdir(parents=True, exist_ok=True)
         Path(cfg.redline_path).write_text(json.dumps(payload, indent=1), encoding="utf-8")
+
+
+def _write_all_redlines(cfg: Config, history: pd.DataFrame) -> None:
+    """Precompute the toggle payload for every consecutive pair and write it to
+    cfg.redlines_path ({date: {deltas_html, redline_html}}). Reads all statement
+    texts from the local cache; full-run only (CI lacks the raw texts)."""
+    if len(history) < 2:
+        return
+    dates = [pd.Timestamp(d).date() for d in history["date"]]
+    texts = fetch_statements(dates, cfg.statements_dir)   # cache hit; no network locally
+    tmap = {pd.Timestamp(r.date).date(): r.text for r in texts.itertuples()}
+    segments_by_date = {}
+    for i in range(1, len(dates)):
+        prev_d, curr_d = dates[i - 1], dates[i]
+        if prev_d in tmap and curr_d in tmap:
+            key = curr_d.strftime("%Y-%m-%d")
+            segments_by_date[key] = redline(tmap[prev_d], tmap[curr_d])
+    if len(segments_by_date) < len(dates) - 1:
+        # A missing cache text drops that date from the payload while the dropdown
+        # (built from full history in render_site) still offers it — the client JS
+        # guards this (`if(entry)`): panels stay, marker still moves.
+        logger.warning("redlines: %d/%d pairs written; some cache texts missing",
+                       len(segments_by_date), len(dates) - 1)
+    payload = build_redlines_payload(all_pair_deltas(history), segments_by_date)
+    Path(cfg.redlines_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(cfg.redlines_path).write_text(json.dumps(payload), encoding="utf-8")  # compact: large fetched artifact
 
 
 def _load_segments(path: Path) -> list[dict]:
@@ -88,9 +115,13 @@ def run_monitor(
                 _write_latest_redline(cfg, history)
             else:
                 logger.warning("no statements fetched for %d pending date(s)", len(todo))
+        _write_all_redlines(cfg, history)   # every non-rebuild run keeps redlines.json in sync
 
     render_site(history, tone_deltas(history), _load_segments(cfg.redline_path),
                 cfg.site_out, verdict_url=VERDICT_URL)
+    # publish the committed redlines payload alongside the page for the browser to fetch
+    if Path(cfg.redlines_path).exists():
+        shutil.copyfile(cfg.redlines_path, Path(cfg.site_out).parent / "redlines.json")
     logger.info("dashboard written to %s (%d statements)", cfg.site_out, len(history))
 
 

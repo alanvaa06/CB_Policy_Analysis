@@ -35,6 +35,7 @@ def _cfg(tmp_path) -> Config:
         history_path=tmp_path / "tone_history.csv",
         calendar_path=tmp_path / "cal.csv",
         redline_path=tmp_path / "latest_redline.json",
+        redlines_path=tmp_path / "data" / "redlines.json",
         statements_dir=tmp_path / "statements",
         site_out=tmp_path / "site" / "index.html",
         lexicon_dir=__import__("pathlib").Path("data/lexicons"),
@@ -81,3 +82,45 @@ def test_run_monitor_populates_metric_columns(tmp_path):
         assert hist[c].notna().any()
     # second statement gets a change_magnitude vs the first
     assert hist["change_magnitude"].notna().any()
+
+
+def test_run_monitor_writes_all_redlines_json(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    payload = json.loads(cfg.redlines_path.read_text(encoding="utf-8"))
+    assert set(payload) == {"2024-03-20"}                 # one pair -> keyed by latest date
+    entry = payload["2024-03-20"]
+    assert entry["redline_html"] and entry["deltas_html"]
+    site_copy = cfg.site_out.parent / "redlines.json"
+    assert site_copy.exists()
+    assert site_copy.read_text(encoding="utf-8") == cfg.redlines_path.read_text(encoding="utf-8")
+    html = cfg.site_out.read_text(encoding="utf-8")
+    assert 'id="meeting"' in html and "redlines.json" in html
+
+
+def test_full_run_writes_redlines_with_no_pending(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, get_html=_fake_get_html, roberta=_fake_roberta)   # scores both
+    cfg.redlines_path.unlink()                                           # drop the artifact
+    m.run_monitor(cfg, get_html=_fake_get_html, roberta=_fake_roberta)   # no pending dates now
+    assert cfg.redlines_path.exists()                                    # regenerated anyway
+    payload = json.loads(cfg.redlines_path.read_text(encoding="utf-8"))
+    assert set(payload) == {"2024-03-20"}
+
+
+def test_rebuild_only_reuses_committed_redlines(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
+    m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    before = cfg.redlines_path.read_text(encoding="utf-8")
+    cfg.site_out.unlink()
+    (cfg.site_out.parent / "redlines.json").unlink()
+    def _boom(url):
+        raise AssertionError("rebuild-only must not fetch")
+    m.run_monitor(cfg, rebuild_only=True, get_html=_boom)
+    assert cfg.site_out.exists()
+    assert 'id="meeting"' in cfg.site_out.read_text(encoding="utf-8")
+    assert (cfg.site_out.parent / "redlines.json").exists()          # rebuild-only re-published the copy
+    assert cfg.redlines_path.read_text(encoding="utf-8") == before   # rebuild-only reused, did not regenerate

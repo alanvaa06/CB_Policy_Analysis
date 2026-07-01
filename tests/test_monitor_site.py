@@ -120,3 +120,41 @@ def test_render_site_has_six_sections(tmp_path):
     for heading in ("How to read", "focused on", "How much", "Communication style"):
         assert heading.lower() in html.lower()
     assert "descriptive" in html.lower()
+
+
+def test_build_redlines_payload_shape():
+    from cbp.monitor.site import build_redlines_payload
+    deltas_by_date = {
+        "2024-05-01": {"date_prior": "2024-03-20", "date_latest": "2024-05-01",
+                       "action": {"prior": -1.0, "latest": 0.0, "delta": 1.0},
+                       "lexicon_tone": {"prior": 0.2, "latest": 0.0, "delta": -0.2},
+                       "roberta_stance": {"prior": 0.1, "latest": None, "delta": None}},
+    }
+    segs_by_date = {"2024-05-01": [{"op": "replace", "prev": "hold", "curr": "raise"}]}
+    payload = build_redlines_payload(deltas_by_date, segs_by_date)
+    assert set(payload) == {"2024-05-01"}
+    entry = payload["2024-05-01"]
+    assert "deltas" in entry["deltas_html"].lower()      # <table class='deltas'>
+    assert "rl-insert" in entry["redline_html"]          # rendered redline
+    # date present in segments but absent from deltas -> empty-state, not a raise
+    payload_missing = build_redlines_payload({}, segs_by_date)
+    assert "rl-empty" in payload_missing["2024-05-01"]["deltas_html"]
+
+
+def test_render_site_has_meeting_selector_and_hooks(tmp_path):
+    out = tmp_path / "index.html"
+    deltas = {"date_prior": "2024-03-20", "date_latest": "2024-05-01",
+              "action": {"prior": -1.0, "latest": 0.0, "delta": 1.0},
+              "lexicon_tone": {"prior": 0.2, "latest": 0.0, "delta": -0.2},
+              "roberta_stance": {"prior": 0.1, "latest": None, "delta": None}}
+    segs = [{"op": "equal", "prev": "Rates unchanged.", "curr": "Rates unchanged."}]
+    render_site(_hist_v2(), deltas, segs, out)
+    html = out.read_text(encoding="utf-8")
+    assert 'id="meeting"' in html                          # the dropdown
+    assert html.count("<option") == 2                      # 3 rows -> 2 pairs w/ a prior
+    assert 'value="2024-05-01"' in html                    # newest option present
+    assert 'id="deltas-slot"' in html and 'id="redline-slot"' in html
+    for cid in ("fig-heatmap", "fig-change", "fig-commstyle", "fig-levels", "fig-deltas"):
+        assert cid in html                                 # explicit chart div ids
+    assert "redlines.json" in html                         # fetch target
+    assert "Plotly.relayout" in html                       # marker hook
