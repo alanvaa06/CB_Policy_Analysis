@@ -146,6 +146,19 @@ def _deltas_table_html(deltas: dict) -> str:
             "<th>Δ</th></tr>" + "".join(rows) + "</table>")
 
 
+def build_redlines_payload(deltas_by_date: dict, segments_by_date: dict) -> dict:
+    """For every date present in `segments_by_date`, pre-render both panels.
+    Returns {date: {"deltas_html": ..., "redline_html": ...}} — the toggle payload
+    served as site/redlines.json. Both renderers stay the single source of truth."""
+    payload = {}
+    for date, segments in segments_by_date.items():
+        payload[date] = {
+            "deltas_html": _deltas_table_html(deltas_by_date.get(date, {})),
+            "redline_html": build_redline_html(segments),
+        }
+    return payload
+
+
 _CSS = """
 body{font-family:system-ui,Segoe UI,Arial,sans-serif;max-width:980px;margin:24px auto;padding:0 16px;color:#222}
 .banner{background:#EAF2FB;border:1px solid #B6D4F2;padding:10px 14px;border-radius:6px;font-size:14px}

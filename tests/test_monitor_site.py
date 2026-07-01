@@ -120,3 +120,19 @@ def test_render_site_has_six_sections(tmp_path):
     for heading in ("How to read", "focused on", "How much", "Communication style"):
         assert heading.lower() in html.lower()
     assert "descriptive" in html.lower()
+
+
+def test_build_redlines_payload_shape():
+    from cbp.monitor.site import build_redlines_payload
+    deltas_by_date = {
+        "2024-05-01": {"date_prior": "2024-03-20", "date_latest": "2024-05-01",
+                       "action": {"prior": -1.0, "latest": 0.0, "delta": 1.0},
+                       "lexicon_tone": {"prior": 0.2, "latest": 0.0, "delta": -0.2},
+                       "roberta_stance": {"prior": 0.1, "latest": None, "delta": None}},
+    }
+    segs_by_date = {"2024-05-01": [{"op": "replace", "prev": "hold", "curr": "raise"}]}
+    payload = build_redlines_payload(deltas_by_date, segs_by_date)
+    assert set(payload) == {"2024-05-01"}
+    entry = payload["2024-05-01"]
+    assert "deltas" in entry["deltas_html"].lower()      # <table class='deltas'>
+    assert "rl-insert" in entry["redline_html"]          # rendered redline
