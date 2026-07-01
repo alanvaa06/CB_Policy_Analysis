@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html as _html
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -146,6 +147,57 @@ def _deltas_table_html(deltas: dict) -> str:
             "<th>Δ</th></tr>" + "".join(rows) + "</table>")
 
 
+def _selector_html(dates: list[str]) -> str:
+    """Dropdown of every meeting that has a prior (all dates except the first),
+    newest first, latest pre-selected. Empty string when <2 meetings."""
+    pairs = dates[1:]
+    if not pairs:
+        return ""
+    opts = "".join(f'<option value="{d}"{" selected" if d == pairs[-1] else ""}>{d}</option>'
+                   for d in reversed(pairs))
+    return ('<p class="selector">Show statement: '
+            f'<select id="meeting">{opts}</select> <span>vs its prior</span></p>')
+
+
+def _toggle_js(redlines_url: str) -> str:
+    """Client-side swap: fetch the payload once, replace deltas+redline innerHTML,
+    and move a dotted vertical marker on each chart via Plotly.relayout."""
+    ids = ["fig-heatmap", "fig-change", "fig-commstyle", "fig-levels", "fig-deltas"]
+    return """
+<script>
+const CHART_IDS = %s;
+let _payload = null;
+async function _loadPayload(){
+  if(!_payload){ _payload = await fetch("%s").then(r => r.json()); }
+  return _payload;
+}
+function _mark(date){
+  const shapes = [{type:"line", xref:"x", yref:"paper", x0:date, x1:date,
+                   y0:0, y1:1, line:{color:"#888", dash:"dot", width:1}}];
+  CHART_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && window.Plotly){ Plotly.relayout(el, {shapes: shapes}); }
+  });
+}
+async function _onSelect(date){
+  const map = await _loadPayload();
+  const entry = map[date];
+  if(entry){
+    document.getElementById("deltas-slot").innerHTML = entry.deltas_html;
+    document.getElementById("redline-slot").innerHTML = entry.redline_html;
+  }
+  _mark(date);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("meeting");
+  if(sel){
+    sel.addEventListener("change", e => _onSelect(e.target.value));
+    _mark(sel.value);
+  }
+});
+</script>""" % (json.dumps(ids), redlines_url)
+
+
 def build_redlines_payload(deltas_by_date: dict, segments_by_date: dict) -> dict:
     """For every date present in `segments_by_date`, pre-render both panels.
     `deltas_by_date` maps date string -> an all_pair_deltas() entry; a date absent
@@ -173,6 +225,7 @@ table.deltas td:first-child,table.deltas th:first-child{text-align:left}
 .rl-equal{color:#444}.rl-insert{background:#E6F4EA;color:#137333}
 .rl-delete{background:#FCE8E6;color:#A50E0E;text-decoration:line-through}
 .rl-empty{color:#888;font-style:italic}
+.selector{font-size:14px;margin:6px 0}.selector select{font-size:14px;padding:2px 4px}
 """
 
 _PAGE = """<!DOCTYPE html>
@@ -183,27 +236,35 @@ _PAGE = """<!DOCTYPE html>
 <h2>How to read this tracker</h2>
 <div class="banner">{glossary}</div>
 <h2>Latest statement — what changed vs the prior</h2>
-{deltas_table}
-<div class="redline">{redline}</div>
+{selector}
+<div id="deltas-slot">{deltas_table}</div>
+<div id="redline-slot" class="redline">{redline}</div>
 <h2>What the Fed is focused on</h2>{heatmap}
 <h2>How much each statement changed</h2>{change_fig}
 <h2>Communication style</h2>{commstyle}
 <h2>Stance measures, in context</h2>{levels}{deltas_fig}
+{toggle_js}
 </body></html>"""
 
 
 def render_site(history: pd.DataFrame, deltas: dict, segments: list[dict],
-                out_path: Path, *, verdict_url: str = VERDICT_URL) -> None:
-    """Assemble the self-contained 6-panel tracker and write it to `out_path`.
+                out_path: Path, *, verdict_url: str = VERDICT_URL,
+                redlines_url: str = "redlines.json") -> None:
+    """Assemble the tracker and write it to `out_path`. When history has >=2 rows,
+    a meeting selector is emitted; picking a date swaps the deltas table + redline
+    (from `redlines_url`, fetched once) and moves a marker on each chart.
     Only the first figure inlines plotly.js; the rest reference it."""
-    heatmap = build_theme_heatmap(history).to_html(full_html=False, include_plotlyjs="inline")
-    change_fig = build_change_magnitude_figure(history).to_html(full_html=False, include_plotlyjs=False)
-    commstyle = build_commstyle_figure(history).to_html(full_html=False, include_plotlyjs=False)
-    levels = build_levels_figure(history).to_html(full_html=False, include_plotlyjs=False)
-    deltas_fig = build_deltas_figure(history).to_html(full_html=False, include_plotlyjs=False)
-    page = _PAGE.format(css=_CSS, glossary=glossary_html(), deltas_table=_deltas_table_html(deltas),
+    heatmap = build_theme_heatmap(history).to_html(full_html=False, include_plotlyjs="inline", div_id="fig-heatmap")
+    change_fig = build_change_magnitude_figure(history).to_html(full_html=False, include_plotlyjs=False, div_id="fig-change")
+    commstyle = build_commstyle_figure(history).to_html(full_html=False, include_plotlyjs=False, div_id="fig-commstyle")
+    levels = build_levels_figure(history).to_html(full_html=False, include_plotlyjs=False, div_id="fig-levels")
+    deltas_fig = build_deltas_figure(history).to_html(full_html=False, include_plotlyjs=False, div_id="fig-deltas")
+    dates = [pd.Timestamp(d).strftime("%Y-%m-%d") for d in history["date"]]
+    page = _PAGE.format(css=_CSS, glossary=glossary_html(), selector=_selector_html(dates),
+                        deltas_table=_deltas_table_html(deltas),
                         redline=build_redline_html(segments), heatmap=heatmap, change_fig=change_fig,
-                        commstyle=commstyle, levels=levels, deltas_fig=deltas_fig)
+                        commstyle=commstyle, levels=levels, deltas_fig=deltas_fig,
+                        toggle_js=_toggle_js(redlines_url))
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(page, encoding="utf-8")
