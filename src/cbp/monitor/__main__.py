@@ -61,6 +61,9 @@ def _write_all_redlines(cfg: Config, history: pd.DataFrame) -> None:
             key = curr_d.strftime("%Y-%m-%d")
             segments_by_date[key] = redline(tmap[prev_d], tmap[curr_d])
     if len(segments_by_date) < len(dates) - 1:
+        # A missing cache text drops that date from the payload while the dropdown
+        # (built from full history in render_site) still offers it — the client JS
+        # guards this (`if(entry)`): panels stay, marker still moves.
         logger.warning("redlines: %d/%d pairs written; some cache texts missing",
                        len(segments_by_date), len(dates) - 1)
     payload = build_redlines_payload(all_pair_deltas(history), segments_by_date)
