@@ -65,8 +65,9 @@ def tone_deltas(history: pd.DataFrame) -> dict:
 
 
 def all_pair_deltas(history: pd.DataFrame) -> dict:
-    """`_pair_deltas` for every consecutive pair, keyed by the latest date string.
-    {} when fewer than two rows."""
+    """Deltas for every consecutive pair, keyed by the latest date string.
+    Returns {} when fewer than two rows. Assumes `history` is date-sorted
+    ascending with unique dates (as load_history/upsert_history guarantee)."""
     if len(history) < 2:
         return {}
     out = {}

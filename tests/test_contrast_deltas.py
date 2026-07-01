@@ -1,5 +1,6 @@
 # tests/test_contrast_deltas.py
 import pandas as pd
+import pytest
 from cbp.monitor.contrast import tone_deltas, all_pair_deltas
 
 
@@ -30,3 +31,9 @@ def test_all_pair_deltas_none_delta_on_nan():
 def test_all_pair_deltas_empty_when_single_row():
     one = _hist().iloc[:1]
     assert all_pair_deltas(one) == {}
+
+
+def test_all_pair_deltas_first_pair_delta_math():
+    m = all_pair_deltas(_hist())
+    assert m["2024-03-20"]["action"]["delta"] == -2.0   # -1.0 - 1.0
+    assert m["2024-03-20"]["lexicon_tone"]["delta"] == pytest.approx(-0.3)  # 0.2 - 0.5
