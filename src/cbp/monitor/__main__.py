@@ -59,9 +59,12 @@ def _write_all_redlines(cfg: Config, history: pd.DataFrame) -> None:
         if prev_d in tmap and curr_d in tmap:
             key = curr_d.strftime("%Y-%m-%d")
             segments_by_date[key] = redline(tmap[prev_d], tmap[curr_d])
+    if len(segments_by_date) < len(dates) - 1:
+        logger.warning("redlines: %d/%d pairs written; some cache texts missing",
+                       len(segments_by_date), len(dates) - 1)
     payload = build_redlines_payload(all_pair_deltas(history), segments_by_date)
     Path(cfg.redlines_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(cfg.redlines_path).write_text(json.dumps(payload), encoding="utf-8")
+    Path(cfg.redlines_path).write_text(json.dumps(payload), encoding="utf-8")  # compact: large fetched artifact
 
 
 def _load_segments(path: Path) -> list[dict]:

@@ -100,9 +100,11 @@ def test_rebuild_only_reuses_committed_redlines(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.calendar_path.write_text("date\n2024-01-31\n2024-03-20\n")
     m.run_monitor(cfg, use_roberta=True, get_html=_fake_get_html, roberta=_fake_roberta)
+    before = cfg.redlines_path.read_text(encoding="utf-8")
     cfg.site_out.unlink()
     def _boom(url):
         raise AssertionError("rebuild-only must not fetch")
     m.run_monitor(cfg, rebuild_only=True, get_html=_boom)
     assert cfg.site_out.exists()
     assert 'id="meeting"' in cfg.site_out.read_text(encoding="utf-8")
+    assert cfg.redlines_path.read_text(encoding="utf-8") == before   # rebuild-only reused, did not regenerate
